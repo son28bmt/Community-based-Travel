@@ -6,6 +6,8 @@ const listLocations = async (req, res, next) => {
     const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
     const search = (req.query.search || "").trim();
     const status = (req.query.status || "").trim();
+    const category = (req.query.category || "").trim();
+    const province = (req.query.province || "").trim();
 
     const filter = {};
     if (search) {
@@ -17,6 +19,12 @@ const listLocations = async (req, res, next) => {
     }
     if (status) {
       filter.status = status;
+    }
+    if (category) {
+      filter.category = category;
+    }
+    if (province) {
+      filter.province = province;
     }
 
     const [items, total] = await Promise.all([
@@ -43,7 +51,10 @@ const listLocations = async (req, res, next) => {
 
 const getLocation = async (req, res, next) => {
   try {
-    const location = await Location.findById(req.params.id);
+    const location = await Location.findById(req.params.id).populate(
+      "createdBy",
+      "name email"
+    );
     if (!location) {
       return res.status(404).json({ message: "Location not found" });
     }
@@ -56,7 +67,8 @@ const getLocation = async (req, res, next) => {
 
 const createLocation = async (req, res, next) => {
   try {
-    const { name, category, province, status, description, imageUrl } = req.body;
+    const { name, category, province, status, description, imageUrl, images } =
+      req.body;
 
     const location = await Location.create({
       name,
@@ -65,6 +77,7 @@ const createLocation = async (req, res, next) => {
       status,
       description,
       imageUrl,
+      images,
       createdBy: req.user?.id,
     });
 
@@ -76,7 +89,8 @@ const createLocation = async (req, res, next) => {
 
 const updateLocation = async (req, res, next) => {
   try {
-    const { name, category, province, status, description, imageUrl } = req.body;
+    const { name, category, province, status, description, imageUrl, images } =
+      req.body;
 
     const location = await Location.findById(req.params.id);
     if (!location) {
@@ -87,8 +101,11 @@ const updateLocation = async (req, res, next) => {
     if (category !== undefined) location.category = category;
     if (province !== undefined) location.province = province;
     if (status !== undefined) location.status = status;
+    if (req.body.rejectionReason !== undefined)
+      location.rejectionReason = req.body.rejectionReason;
     if (description !== undefined) location.description = description;
     if (imageUrl !== undefined) location.imageUrl = imageUrl;
+    if (images !== undefined) location.images = images;
 
     await location.save();
 
@@ -112,10 +129,35 @@ const deleteLocation = async (req, res, next) => {
   }
 };
 
+const getStats = async (req, res, next) => {
+  try {
+    const [total, pending, daNang, viewsResult] = await Promise.all([
+      Location.countDocuments({}),
+      Location.countDocuments({ status: "pending" }),
+      Location.countDocuments({ province: "Đà Nẵng" }),
+      Location.aggregate([
+        { $group: { _id: null, totalViews: { $sum: "$views" } } },
+      ]),
+    ]);
+
+    const totalViews = viewsResult[0]?.totalViews || 0;
+
+    return res.json({
+      total,
+      pending,
+      daNang,
+      totalViews,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   listLocations,
   getLocation,
   createLocation,
   updateLocation,
   deleteLocation,
+  getStats,
 };

@@ -15,11 +15,8 @@ const uploadImage = async (req, res, next) => {
 
     const client = getR2Client();
     const ext = path.extname(req.file.originalname || "");
-    const base = sanitizeFilename(path.basename(req.file.originalname || "", ext));
     const prefix = env.r2Prefix.replace(/^\/+|\/+$/g, "");
-    const key = `${prefix}/${Date.now()}-${crypto
-      .randomUUID()
-      .slice(0, 8)}-${base}${ext || ".jpg"}`;
+    const key = `${prefix}/${Date.now()}-${crypto.randomUUID()}${ext || ".jpg"}`;
 
     await client.send(
       new PutObjectCommand({

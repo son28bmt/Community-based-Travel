@@ -23,8 +23,10 @@
     "react-hook-form": "^7.71.0",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
+    "react-quill-new": "^3.7.0",
     "recharts": "^3.6.0",
     "tailwind-merge": "^3.4.0",
+    "use-debounce": "^10.1.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

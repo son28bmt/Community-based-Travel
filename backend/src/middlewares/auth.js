@@ -11,20 +11,22 @@ const protect = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, env.jwtSecret);
-    req.user = { id: payload.id, role: payload.role };
+    req.user = { _id: payload.id, id: payload.id, role: payload.role };
     return next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
 
-const authorize = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
+const authorize =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-  return next();
-};
+    return next();
+  };
 
 const adminOnly = authorize("admin");
 

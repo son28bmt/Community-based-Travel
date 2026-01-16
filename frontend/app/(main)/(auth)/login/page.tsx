@@ -79,19 +79,29 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div className="relative">
-              <FaEnvelope className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Địa chỉ Email"
-              />
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email hoặc Tên đăng nhập
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  id="email-address"
+                  name="email"
+                  type="text"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Địa chỉ Email hoặc Tên đăng nhập"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaEnvelope className="text-gray-400 text-lg" />
+                </div>
+              </div>
             </div>
             <div className="relative">
               <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />

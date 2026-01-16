@@ -1,139 +1,120 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useState } from "react";
+import Link from "next/link";
 import {
+  FaCheck,
+  FaChevronDown,
   FaEdit,
   FaEye,
-  FaTrash,
-  FaSearch,
   FaFilter,
   FaPlus,
-  FaTimes,
-  FaCloudUploadAlt,
+  FaSearch,
+  FaTimes, // Used for Reject icon
+  FaTrash,
   FaSpinner,
 } from "react-icons/fa";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+
+// Modal Component for Rejection
+const RejectionModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (reason: string) => void;
+}) => {
+  const [reason, setReason] = useState("");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4">
+        <h3 className="text-lg font-bold text-gray-900">Từ chối địa điểm</h3>
+        <p className="text-sm text-gray-500">
+          Vui lòng nhập lý do từ chối để thông báo cho người đóng góp.
+        </p>
+        <textarea
+          className="w-full h-32 p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-100"
+          placeholder="Nhập lý do..."
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        ></textarea>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg"
+          >
+            Hủy bỏ
+          </button>
+          <button
+            onClick={() => {
+              if (!reason.trim()) return toast.error("Vui lòng nhập lý do");
+              onSubmit(reason);
+              setReason("");
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+          >
+            Xác nhận từ chối
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function AdminLocationsPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
-
-  // State
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // empty = all
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "Thiên nhiên",
-    province: "",
-    description: "",
-    imageUrl: "",
-    status: "pending",
-  });
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterProvince, setFilterProvince] = useState("");
 
-  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Rejection Modal State
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(
+    null
+  );
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-    setIsUploading(true);
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/admin/uploads",
-        uploadData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
-        }
-      );
-      setFormData((prev) => ({ ...prev, imageUrl: res.data.url }));
-      toast.success("Tải ảnh lên thành công!");
-    } catch (error) {
-      toast.error("Lỗi khi tải ảnh lên");
-      console.error(error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  // Debounce search
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 500);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  // Fetch Locations
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin-locations", page, debouncedSearch, statusFilter],
+  const { data: citiesData } = useQuery({
+    queryKey: ["admin-cities-select"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/locations", {
+      const res = await axios.get("http://localhost:5000/api/admin/cities", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          page,
-          limit: 10,
-          search: debouncedSearch,
-          status: statusFilter,
-        },
+        params: { limit: 100 },
       });
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
   });
 
-  // Mutations
-  const createMutation = useMutation({
-    mutationFn: async (newLocation: any) => {
-      return axios.post(
-        "http://localhost:5000/api/admin/locations",
-        newLocation,
-        {
-          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
-      );
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["admin-locations", page, search, filterCategory, filterProvince],
+    queryFn: async () => {
+      // Build query params
+      const params: any = { page, limit: 10, search };
+      if (filterCategory) params.category = filterCategory;
+      if (filterProvince) params.province = filterProvince;
+
+      const res = await axios.get("http://localhost:5000/api/admin/locations", {
+        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        params,
+      });
+      return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
-      toast.success("Thêm địa điểm thành công!");
-      closeModal();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Có lỗi xảy ra");
-    },
+    enabled: !!session?.user?.accessToken,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return axios.patch(
-        `http://localhost:5000/api/admin/locations/${id}`,
-        data,
-        {
-          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
-      toast.success("Cập nhật thành công!");
-      closeModal();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Có lỗi xảy ra");
-    },
-  });
-
+  // Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return axios.delete(`http://localhost:5000/api/admin/locations/${id}`, {
@@ -142,52 +123,46 @@ export default function AdminLocationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
-      toast.success("Đã xóa địa điểm!");
+      toast.success("Đã xóa địa điểm");
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
   });
 
-  // Handlers
-  const handleOpenModal = (location: any = null) => {
-    if (location) {
-      setEditingLocation(location);
-      setFormData({
-        name: location.name,
-        category: location.category,
-        province: location.province,
-        description: location.description || "",
-        imageUrl: location.imageUrl || "",
-        status: location.status,
-      });
-    } else {
-      setEditingLocation(null);
-      setFormData({
-        name: "",
-        category: "Thiên nhiên",
-        province: "",
-        description: "",
-        imageUrl: "",
-        status: "pending",
-      });
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingLocation(null);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingLocation) {
-      updateMutation.mutate({ id: editingLocation._id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
+  // Update Status Mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      rejectionReason,
+    }: {
+      id: string;
+      status: string;
+      rejectionReason?: string;
+    }) => {
+      return axios.patch(
+        `http://localhost:5000/api/admin/locations/${id}`,
+        { status, rejectionReason },
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-locations-stats"] }); // Update stats too
+      toast.success("Cập nhật trạng thái thành công");
+      setIsRejectModalOpen(false);
+      setSelectedLocationId(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Cập nhật thất bại");
+    },
+    onSettled: () => {
+      setProcessingId(null);
+    },
+  });
 
   const handleDelete = (id: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa địa điểm này không?")) {
@@ -195,408 +170,302 @@ export default function AdminLocationsPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "approved":
-        return (
-          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-            ● Đã duyệt
-          </span>
-        );
-      case "pending":
-        return (
-          <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
-            ● Chờ duyệt
-          </span>
-        );
-      case "hidden":
-        return (
-          <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">
-            ● Bị ẩn
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">
-            {status}
-          </span>
-        );
+  const handleApprove = (id: string) => {
+    setProcessingId(id);
+    updateStatusMutation.mutate({ id, status: "approved" });
+  };
+
+  const handleRejectClick = (id: string) => {
+    setSelectedLocationId(id);
+    setIsRejectModalOpen(true);
+  };
+
+  const handleRejectSubmit = (reason: string) => {
+    if (selectedLocationId) {
+      updateStatusMutation.mutate({
+        id: selectedLocationId,
+        status: "rejected",
+        rejectionReason: reason,
+      });
     }
   };
 
+  const { data: statsData } = useQuery({
+    queryKey: ["admin-locations-stats"],
+    queryFn: async () => {
+      const res = await axios.get(
+        "http://localhost:5000/api/admin/locations/stats",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
+      return res.data;
+    },
+    enabled: !!session?.user?.accessToken,
+  });
+
+  const locations = data?.items || [];
+
+  const stats = [
+    { label: "Tổng địa điểm", value: statsData?.total || 0 },
+    {
+      label: filterProvince ? `Tại ${filterProvince}` : "Tại Đà Nẵng",
+      value: filterProvince
+        ? data?.pagination?.total || 0 // If filtered, use the list count
+        : statsData?.daNang || 0, // Else use Da Nang count
+    },
+    { label: "Lượt check-in", value: statsData?.totalViews || 0 }, // Using views as proxy for check-ins
+    {
+      label: "Chờ duyệt",
+      value: statsData?.pending || 0,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-8">
+      {/* Rejection Modal */}
+      <RejectionModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onSubmit={handleRejectSubmit}
+      />
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Quản lý địa điểm</h1>
-          <p className="text-gray-500">
-            Hệ thống phê duyệt và quản lý các điểm đến du lịch.
+          <p className="text-xs uppercase tracking-widest text-gray-400">
+            Trang chủ / Quản lý địa điểm
+          </p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mt-2">
+            Quản lý địa điểm theo tỉnh thành
+          </h1>
+          <p className="text-sm text-gray-500 mt-2">
+            Lọc và quản lý các địa danh du lịch theo từng khu vực tỉnh/thành
+            phố.
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 flex items-center gap-2 shadow-md transition-all"
-        >
-          <FaPlus /> Thêm địa điểm
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex gap-2 bg-gray-50 p-1 rounded-lg">
-          {["", "pending", "approved", "hidden"].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                statusFilter === st
-                  ? "bg-white text-blue-600 shadow-sm font-bold"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {st === ""
-                ? "Tất cả"
-                : st === "pending"
-                  ? "Chờ duyệt"
-                  : st === "approved"
-                    ? "Đã duyệt"
-                    : "Bị ẩn"}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-64"
-          />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/locations/new"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-lg shadow-blue-200"
+          >
+            <FaPlus /> Thêm địa điểm mới
+          </Link>
         </div>
       </div>
 
-      {/* Table Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
-        {isLoading || !data ? (
-          <div className="flex items-center justify-center h-64 text-gray-400 gap-2">
-            <FaSpinner className="animate-spin text-2xl" /> Đang tải dữ liệu...
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 text-sm text-gray-600">
+            <FaSearch className="text-gray-400" />
+            <input
+              placeholder="Tìm tên địa điểm..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent outline-none w-56"
+            />
           </div>
-        ) : isError ? (
-          <div className="flex items-center justify-center h-64 text-red-500">
-            Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.
-          </div>
-        ) : data?.items?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-            <p>Không tìm thấy địa điểm nào.</p>
-          </div>
-        ) : (
-          <>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-500 font-bold text-xs uppercase border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4">Tên địa điểm</th>
-                  <th className="px-6 py-4">Danh mục</th>
-                  <th className="px-6 py-4">Tỉnh/Thành</th>
-                  <th className="px-6 py-4">Trạng thái</th>
-                  <th className="px-6 py-4 text-right">Hành động</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {data.items.map((loc: any) => (
-                  <tr
-                    key={loc._id}
-                    className="hover:bg-gray-50 transition-colors group"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gray-200 overflow-hidden relative">
-                          {loc.imageUrl ? (
-                            <Image
-                              src={loc.imageUrl}
-                              alt={loc.name}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">
-                              ?
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-800">
-                            {loc.name}
-                          </h4>
-                          <p className="text-xs text-gray-400">
-                            ID: {loc._id.slice(-6)}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">
-                        {loc.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{loc.province}</td>
-                    <td className="px-6 py-4">{getStatusBadge(loc.status)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 text-gray-400">
-                        {loc.status === "pending" && (
-                          <button
-                            onClick={() => {
-                              setEditingLocation(loc);
-                              setFormData({ ...loc, status: "approved" }); // Quick approve hook, or just open edit
-                              updateMutation.mutate({
-                                id: loc._id,
-                                data: { status: "approved" },
-                              });
-                            }}
-                            className="text-green-600 hover:text-green-700 font-bold text-xs border border-green-200 bg-green-50 px-2 py-1 rounded"
-                          >
-                            Duyệt
-                          </button>
+
+          <select
+            value={filterProvince}
+            onChange={(e) => setFilterProvince(e.target.value)}
+            className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none"
+          >
+            <option value="">Tất cả tỉnh thành</option>
+            {citiesData?.items?.map((c: any) => (
+              <option key={c._id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none"
+          >
+            <option value="">Tất cả danh mục</option>
+            <option value="Kỳ quan">Kỳ quan</option>
+            <option value="Biển đảo">Biển đảo</option>
+            <option value="Lịch sử">Lịch sử</option>
+            <option value="Ẩm thực">Ẩm thực</option>
+          </select>
+        </div>
+
+        <table className="w-full text-sm">
+          <thead className="text-xs uppercase text-gray-400 border-b border-gray-100">
+            <tr>
+              <th className="px-4 py-3 text-left">Tên địa điểm</th>
+              <th className="px-4 py-3 text-left">Tỉnh thành</th>
+              <th className="px-4 py-3 text-left">Danh mục</th>
+              <th className="px-4 py-3 text-left">Trạng thái</th>
+              <th className="px-4 py-3 text-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {isLoading ? (
+              <tr>
+                <td className="px-4 py-6 text-gray-400" colSpan={5}>
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            ) : isError ? (
+              <tr>
+                <td className="px-4 py-6 text-red-500" colSpan={5}>
+                  Có lỗi khi tải dữ liệu.
+                </td>
+              </tr>
+            ) : (
+              locations.map((loc: any) => (
+                <tr key={loc._id}>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                        {loc.imageUrl ? (
+                          <Image
+                            src={loc.imageUrl}
+                            alt={loc.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <img
+                            src="https://placehold.co/80x80"
+                            alt={loc.name}
+                            className="h-full w-full object-cover"
+                          />
                         )}
-                        <button
-                          onClick={() => handleOpenModal(loc)}
-                          className="hover:text-blue-500 p-1"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(loc._id)}
-                          className="hover:text-red-500 p-1"
-                        >
-                          <FaTrash />
-                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {loc.name}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          ID: {loc._id?.slice(-6)}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-gray-600">{loc.province}</td>
+                  <td className="px-4 py-4">
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-50 text-blue-600">
+                      {loc.category}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span
+                      className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                        loc.status === "approved"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : loc.status === "rejected"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-orange-100 text-orange-600"
+                      }`}
+                    >
+                      {loc.status === "approved"
+                        ? "Hoạt động"
+                        : loc.status === "rejected"
+                          ? "Từ chối"
+                          : "Chờ duyệt"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-right text-gray-400">
+                    <div className="flex justify-end gap-3">
+                      {loc.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(loc._id)}
+                            className="hover:text-emerald-600 flex items-center disabled:opacity-50"
+                            title="Duyệt"
+                            disabled={processingId === loc._id}
+                          >
+                            {processingId === loc._id &&
+                            updateStatusMutation.isPending ? (
+                              <FaSpinner className="animate-spin text-emerald-600" />
+                            ) : (
+                              <FaCheck />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleRejectClick(loc._id)}
+                            className="hover:text-red-500 flex items-center"
+                            title="Từ chối"
+                            disabled={processingId === loc._id}
+                          >
+                            <FaTimes />
+                          </button>
+                          <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                        </>
+                      )}
 
-            {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-500">
-              <span>
-                Trang {data.pagination.page} / {data.pagination.totalPages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Trước
-                </button>
-                <button
-                  disabled={page >= data.pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Sau
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+                      <Link
+                        href={`/dia-diem/${loc._id}`}
+                        target="_blank"
+                        className="hover:text-blue-600 flex items-center"
+                      >
+                        <FaEye />
+                      </Link>
+                      <Link
+                        href={`/admin/locations/${loc._id}`}
+                        className="hover:text-blue-600 flex items-center"
+                      >
+                        <FaEdit />
+                      </Link>
+                      <button
+                        className="hover:text-red-500"
+                        onClick={() => handleDelete(loc._id)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        <div className="flex items-center justify-between text-xs text-gray-400">
+          <span>
+            Hiển thị {(page - 1) * 10 + 1}-
+            {Math.min(page * 10, data?.pagination?.total || 0)} trong số{" "}
+            {data?.pagination?.total || 0} địa điểm
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 disabled:opacity-50"
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ‹
+            </button>
+            <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600">
+              {page}
+            </button>
+            <button
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 disabled:opacity-50"
+              disabled={page >= (data?.pagination?.totalPages || 1)}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              ›
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden"
-            >
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg font-bold text-gray-800">
-                  {editingLocation ? "Chỉnh sửa địa điểm" : "Thêm mới địa điểm"}
-                </h3>
-                <button
-                  onClick={closeModal}
-                  className="text-gray-400 hover:text-red-500"
-                >
-                  <FaTimes />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    Tên địa điểm
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-100 outline-none"
-                    placeholder="Nhập tên địa điểm..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">
-                      Danh mục
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) =>
-                        setFormData({ ...formData, category: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-100 outline-none"
-                    >
-                      <option value="Thiên nhiên">Thiên nhiên</option>
-                      <option value="Văn hóa">Văn hóa</option>
-                      <option value="Ẩm thực">Ẩm thực</option>
-                      <option value="Giải trí">Giải trí</option>
-                      <option value="Khách sạn">Khách sạn</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">
-                      Tỉnh / Thành
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.province}
-                      onChange={(e) =>
-                        setFormData({ ...formData, province: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-100 outline-none"
-                      placeholder="VD: Hà Nội"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    Hình ảnh
-                  </label>
-
-                  {formData.imageUrl ? (
-                    <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                      <Image
-                        src={formData.imageUrl}
-                        alt="Preview"
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData({ ...formData, imageUrl: "" })
-                          }
-                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
-                          title="Xóa ảnh"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          {isUploading ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <FaSpinner className="animate-spin text-gray-500 text-2xl" />
-                              <p className="text-sm text-gray-500 font-bold">
-                                Đang tải lên...
-                              </p>
-                            </div>
-                          ) : (
-                            <>
-                              <FaCloudUploadAlt className="w-8 h-8 mb-2 text-gray-500" />
-                              <p className="text-sm text-gray-500 font-bold">
-                                Nhấp để tải ảnh lên
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                SVG, PNG, JPG (MAX. 5MB)
-                              </p>
-                            </>
-                          )}
-                        </div>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          disabled={isUploading}
-                          onChange={handleUploadImage}
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    Mô tả
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-100 outline-none"
-                    placeholder="Mô tả ngắn về địa điểm..."
-                  ></textarea>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">
-                    Trạng thái
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-100 outline-none"
-                  >
-                    <option value="pending">Chờ duyệt</option>
-                    <option value="approved">Đã duyệt (Public)</option>
-                    <option value="hidden">Ẩn (Private)</option>
-                  </select>
-                </div>
-
-                <div className="pt-4 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-lg"
-                  >
-                    Hủy bỏ
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={
-                      createMutation.isPending || updateMutation.isPending
-                    }
-                    className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {createMutation.isPending || updateMutation.isPending
-                      ? "Đang lưu..."
-                      : "Lưu địa điểm"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"
+          >
+            <p className="text-xs text-gray-400 uppercase">{stat.label}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {stat.value}
+            </p>
           </div>
-        )}
-      </AnimatePresence>
+        ))}
+      </div>
     </div>
   );
 }

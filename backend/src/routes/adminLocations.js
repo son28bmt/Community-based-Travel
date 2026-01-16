@@ -6,6 +6,7 @@ const {
   createLocation,
   updateLocation,
   deleteLocation,
+  getStats,
 } = require("../controllers/locationAdminController");
 const validate = require("../middlewares/validate");
 const { protect, adminOnly } = require("../middlewares/auth");
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(protect, adminOnly);
 
 router.get("/", listLocations);
+router.get("/stats", validate, getStats); // validation middleware might not be needed but let's keep consistent if it just passes
 
 router.get(
   "/:id",
@@ -49,8 +51,9 @@ router.patch(
     body("province").optional().trim().notEmpty(),
     body("status")
       .optional()
-      .isIn(["pending", "approved", "hidden"])
+      .isIn(["pending", "approved", "hidden", "rejected"])
       .withMessage("Invalid status"),
+    body("rejectionReason").optional().isString(),
     body("description").optional().isString(),
     body("imageUrl").optional().isString(),
   ],
