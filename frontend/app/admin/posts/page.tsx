@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  FaEdit,
-  FaEye,
-  FaTrash,
-  FaSearch,
-  FaFilter,
-  FaCheck,
-} from "react-icons/fa";
+import { FaEdit, FaEye, FaTrash, FaSearch, FaCheck } from "react-icons/fa";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -26,16 +19,20 @@ export default function AdminPostsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-posts", page, search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/posts", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          page,
-          limit: 10,
-          search: search || undefined,
-          status: statusFilter || undefined,
-          category: categoryFilter || undefined,
-        },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/posts",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: {
+            page,
+            limit: 10,
+            search: search || undefined,
+            status: statusFilter || undefined,
+            category: categoryFilter || undefined,
+          },
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -46,7 +43,8 @@ export default function AdminPostsPage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -58,9 +56,12 @@ export default function AdminPostsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
@@ -136,31 +137,33 @@ export default function AdminPostsPage() {
         </Link>
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex gap-2">
-          {["", "pending", "published", "hidden"].map((status) => (
-            <button
-              key={status || "all"}
-              onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold ${
-                statusFilter === status
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {status === ""
-                ? "Tất cả"
-                : status === "pending"
-                  ? "Chờ duyệt"
-                  : status === "published"
-                    ? "Đã đăng"
-                    : "Đã ẩn"}
-            </button>
-          ))}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            {["", "pending", "published", "hidden"].map((status) => (
+              <button
+                key={status || "all"}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap flex-shrink-0 ${
+                  statusFilter === status
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {status === ""
+                  ? "Tất cả"
+                  : status === "pending"
+                    ? "Chờ duyệt"
+                    : status === "published"
+                      ? "Đã đăng"
+                      : "Đã ẩn"}
+              </button>
+            ))}
+          </div>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 outline-none focus:border-blue-500 hover:bg-gray-50 bg-white"
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 outline-none focus:border-blue-500 hover:bg-gray-50 bg-white w-full md:w-auto"
           >
             <option value="">Tất cả danh mục</option>
             {categoriesData?.items?.map((cat: any) => (
@@ -171,21 +174,95 @@ export default function AdminPostsPage() {
           </select>
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm bài viết..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500"
-            />
-          </div>
+        <div className="w-full md:w-auto relative">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm bài viết..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 w-full md:w-64"
+          />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {isLoading ? (
+          <div className="text-center p-4 text-gray-500">
+            Đang tải dữ liệu...
+          </div>
+        ) : isError ? (
+          <div className="text-center p-4 text-red-500">Có lỗi xảy ra.</div>
+        ) : posts.length === 0 ? (
+          <div className="text-center p-4 text-gray-500">
+            Chưa có bài viết nào.
+          </div>
+        ) : (
+          posts.map((post: any) => (
+            <div
+              key={post._id}
+              className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative"
+            >
+              <div className="absolute top-4 right-4">
+                {getStatusBadge(post.status)}
+              </div>
+              <div className="pr-16 mb-2">
+                <h3 className="font-bold text-gray-800 line-clamp-2">
+                  {post.title}
+                </h3>
+                <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span>{post.createdBy?.name || "Admin"}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="bg-gray-50 text-gray-600 px-2 py-0.5 rounded text-xs font-bold uppercase border border-gray-100">
+                  {post.category || "N/A"}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {post.views} lượt xem
+                </span>
+              </div>
+
+              <div className="pt-3 border-t border-gray-50 flex justify-between items-center">
+                {post.status === "pending" ? (
+                  <button
+                    className="w-full py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 flex items-center justify-center gap-2"
+                    onClick={() =>
+                      updateMutation.mutate({
+                        id: post._id,
+                        status: "published",
+                      })
+                    }
+                  >
+                    <FaCheck /> Duyệt bài viết
+                  </button>
+                ) : (
+                  <div className="flex w-full gap-2">
+                    <Link
+                      href={`/admin/posts/${post._id}`}
+                      className="flex-1 py-2 text-center border border-blue-100 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-50"
+                    >
+                      Sửa
+                    </Link>
+                    <button
+                      className="flex-1 py-2 text-center border border-red-100 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50"
+                      onClick={() => deleteMutation.mutate(post._id)}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 text-gray-500 font-bold text-xs uppercase border-b border-gray-200">
             <tr>
@@ -261,9 +338,13 @@ export default function AdminPostsPage() {
                         >
                           <FaEdit />
                         </Link>
-                        <button className="hover:text-gray-600">
+                        <Link
+                          href={`/bai-viet/${post._id}`}
+                          target="_blank"
+                          className="hover:text-gray-600"
+                        >
                           <FaEye />
-                        </button>
+                        </Link>
                         <button
                           className="hover:text-red-500"
                           onClick={() => deleteMutation.mutate(post._id)}

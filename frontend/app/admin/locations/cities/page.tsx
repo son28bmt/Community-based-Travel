@@ -4,14 +4,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  FaEllipsisH,
-  FaEye,
-  FaFilter,
-  FaPlus,
-  FaTrash,
-  FaEdit,
-} from "react-icons/fa";
+import { FaEllipsisH, FaEye, FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -29,16 +22,20 @@ export default function AdminCitiesPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-cities", page, search, filterRegion],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          page,
-          limit: 8,
-          search: search || undefined,
-          status: "",
-          region: filterRegion || undefined, // Backend now supports region filter
-        },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/cities",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: {
+            page,
+            limit: 8,
+            search: search || undefined,
+            status: "",
+            region: filterRegion || undefined, // Backend now supports region filter
+          },
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -46,9 +43,12 @@ export default function AdminCitiesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/cities/${id}`, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/cities/${id}`,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cities"] });
@@ -92,31 +92,18 @@ export default function AdminCitiesPage() {
             <FaEllipsisH /> Xuất báo cáo
           </button>
 
-          <div className="relative group">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-              <FaFilter /> {filterRegion || "Lọc theo vùng"}
-            </button>
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 hidden group-hover:block z-50">
-              <div className="p-2 space-y-1">
-                {[
-                  "",
-                  "Miền Bắc",
-                  "Miền Trung",
-                  "Miền Nam",
-                  "Tây Nguyên",
-                  "Miền Tây",
-                ].map((region) => (
-                  <button
-                    key={region || "all"}
-                    onClick={() => setFilterRegion(region)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm ${filterRegion === region ? "bg-blue-50 text-blue-600" : "hover:bg-gray-50"}`}
-                  >
-                    {region || "Tất cả"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <select
+            value={filterRegion}
+            onChange={(e) => setFilterRegion(e.target.value)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 appearance-none bg-white cursor-pointer outline-none"
+          >
+            <option value="">Lọc theo vùng</option>
+            <option value="Miền Bắc">Miền Bắc</option>
+            <option value="Miền Trung">Miền Trung</option>
+            <option value="Miền Nam">Miền Nam</option>
+            <option value="Tây Nguyên">Tây Nguyên</option>
+            <option value="Miền Tây">Miền Tây</option>
+          </select>
 
           <Link
             href="/admin/locations/cities/new"
@@ -222,7 +209,15 @@ export default function AdminCitiesPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm md:hidden">
+        {/* Mobile View for Detailed List (Hidden as redundant or simplified) - Actually the Grid View above covers it. 
+             If we want to show the table content as cards specifically, we can, but the above Grid is already cards.
+             So we just hide the table container on mobile.
+         */}
+      </div>
+
+      {/* Detailed Table - Desktop Only */}
+      <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 font-semibold text-gray-700">
           Danh sách chi tiết
         </div>
@@ -237,7 +232,7 @@ export default function AdminCitiesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {cities.slice(0, 5).map((city: any) => (
+            {cities.map((city: any) => (
               <tr key={city._id}>
                 <td className="px-6 py-4 font-semibold text-gray-800">
                   {city.name}

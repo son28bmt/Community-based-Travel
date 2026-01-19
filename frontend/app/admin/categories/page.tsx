@@ -4,10 +4,7 @@ import {
   FaPlus,
   FaEdit,
   FaTrash,
-  FaEye,
-  FaEyeSlash,
   FaSearch,
-  FaEllipsisV,
   FaUtensils,
   FaHotel,
   FaMapMarkedAlt,
@@ -40,7 +37,8 @@ export default function AdminCategoriesPage() {
     queryKey: ["admin-categories", search],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { search: search || undefined },
@@ -53,9 +51,12 @@ export default function AdminCategoriesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
@@ -63,23 +64,6 @@ export default function AdminCategoriesPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
-        { status },
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
-      toast.success("Đã cập nhật trạng thái");
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Lỗi cập nhật");
     },
   });
 
@@ -92,11 +76,11 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 px-4">
+      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 gap-4">
+        <h1 className="text-2xl font-bold text-gray-800 px-4 w-full md:w-auto text-center md:text-left">
           Quản lý danh mục
         </h1>
-        <div className="flex-1 max-w-xl mx-8 relative">
+        <div className="flex-1 w-full md:max-w-xl md:mx-8 relative">
           <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -108,14 +92,15 @@ export default function AdminCategoriesPage() {
         </div>
         <Link
           href="/admin/categories/new"
-          className="px-6 py-2.5 bg-blue-500 text-white rounded-full font-bold hover:bg-blue-600 flex items-center gap-2 shadow-lg shadow-blue-200"
+          className="w-full md:w-auto px-6 py-2.5 bg-blue-500 text-white rounded-full font-bold hover:bg-blue-600 flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
         >
-          <FaPlus /> Thêm danh mục
+          <FaPlus /> <span className="md:hidden">Thêm mới</span>{" "}
+          <span className="hidden md:inline">Thêm danh mục</span>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-xl font-bold text-gray-800 mb-2">
             Cấu trúc danh mục
           </h2>
@@ -148,13 +133,27 @@ export default function AdminCategoriesPage() {
                   key={cat._id}
                   className="border border-gray-100 rounded-xl overflow-hidden"
                 >
-                  <div className="bg-white p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <span className="text-gray-300 cursor-move">::</span>
-                    <div className="w-6 h-6 rounded-full border border-gray-300"></div>
-                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl">
-                      {resolveIcon(cat.icon)}
+                  <div className="bg-white p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer group relative">
+                    <div className="flex items-center gap-4 w-full sm:w-auto">
+                      <span className="text-gray-300 cursor-move hidden sm:block">
+                        ::
+                      </span>
+                      <div className="w-6 h-6 rounded-full border border-gray-300 hidden sm:block"></div>
+                      <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl shrink-0">
+                        {resolveIcon(cat.icon)}
+                      </div>
+                      <div className="flex-1 sm:hidden">
+                        <h3 className="font-bold text-gray-800 text-lg">
+                          {cat.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(cat.subCategories || []).length} con •{" "}
+                          {cat.locationCount || 0} địa điểm
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
+
+                    <div className="flex-1 hidden sm:block">
                       <h3 className="font-bold text-gray-800 text-lg">
                         {cat.name}{" "}
                         {cat.parent && (
@@ -167,7 +166,8 @@ export default function AdminCategoriesPage() {
                         {cat.locationCount || 0} địa điểm
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                    <div className="flex items-center gap-3 absolute top-4 right-4 sm:relative sm:top-0 sm:right-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <Link
                         href={`/admin/categories/${cat._id}`}
                         className="p-2 hover:bg-gray-100 rounded-full"
@@ -184,21 +184,21 @@ export default function AdminCategoriesPage() {
                   </div>
 
                   {(cat.subCategories || []).length > 0 && (
-                    <div className="bg-gray-50 p-4 pl-16 space-y-2 border-t border-gray-100">
+                    <div className="bg-gray-50 p-4 sm:pl-16 space-y-2 border-t border-gray-100">
                       {(cat.subCategories || []).map((sub: any) => (
                         <div
                           key={sub._id}
                           className="flex items-center gap-4 py-2 px-4 bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-all group"
                         >
-                          <span className="text-gray-300 cursor-move text-xs">
+                          <span className="text-gray-300 cursor-move text-xs hidden sm:block">
                             ::
                           </span>
-                          <div className="w-5 h-5 rounded-full border border-gray-300"></div>
+                          <div className="w-5 h-5 rounded-full border border-gray-300 hidden sm:block"></div>
                           <span className="font-medium text-gray-700 flex-1">
                             {sub.name}
                           </span>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <Link
                               href={`/admin/categories/${sub._id}`}
                               className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400 group-hover:text-gray-600"

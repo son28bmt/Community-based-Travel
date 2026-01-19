@@ -26,15 +26,19 @@ export default function AdminReportsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-reports", page, statusFilter, severityFilter],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/reports", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          page,
-          limit: 10,
-          status: statusFilter || undefined,
-          severity: severityFilter || undefined,
-        },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/reports",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: {
+            page,
+            limit: 10,
+            status: statusFilter || undefined,
+            severity: severityFilter || undefined,
+          },
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -155,7 +159,7 @@ export default function AdminReportsPage() {
             <div
               key={rpt._id}
               onClick={() => router.push(`/admin/reports/${rpt._id}`)}
-              className={`bg-white p-6 rounded-xl shadow-sm border-l-4 ${rpt.status === "resolved" ? "border-l-green-500 opacity-60" : rpt.status === "ignored" ? "border-l-gray-300 opacity-60" : "border-l-red-500"} flex flex-col md:flex-row gap-6 md:items-center cursor-pointer hover:bg-gray-50 transition-all`}
+              className={`bg-white p-4 md:p-6 rounded-xl shadow-sm border-l-4 ${rpt.status === "resolved" ? "border-l-green-500 opacity-60" : rpt.status === "ignored" ? "border-l-gray-300 opacity-60" : "border-l-red-500"} flex flex-col md:flex-row gap-4 md:gap-6 md:items-center cursor-pointer hover:bg-gray-50 transition-all`}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -171,10 +175,10 @@ export default function AdminReportsPage() {
                     {new Date(rpt.createdAt).toLocaleString()}
                   </span>
                 </div>
-                <h3 className="font-bold text-gray-800 text-lg mb-1">
+                <h3 className="font-bold text-gray-800 text-lg mb-1 line-clamp-2">
                   Đang báo cáo: {rpt.targetName || "Đối tượng không xác định"}
                 </h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3 flex-wrap">
                   <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-semibold uppercase text-gray-500 border border-gray-200">
                     {rpt.targetType}
                   </span>
@@ -192,7 +196,7 @@ export default function AdminReportsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-row md:flex-col gap-2 min-w-[140px]">
+              <div className="flex flex-col sm:flex-row md:flex-col gap-2 min-w-[140px]">
                 {rpt.status === "pending" ? (
                   <>
                     <button
@@ -219,9 +223,9 @@ export default function AdminReportsPage() {
                     </button>
                   </>
                 ) : (
-                  <div className="text-center text-green-600 font-bold flex flex-col items-center">
+                  <div className="text-center text-green-600 font-bold flex flex-row md:flex-col items-center justify-center gap-2 md:gap-0">
                     <span
-                      className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${rpt.status === "ignored" ? "bg-gray-100 text-gray-500" : "bg-green-100"}`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center md:mb-2 ${rpt.status === "ignored" ? "bg-gray-100 text-gray-500" : "bg-green-100"}`}
                     >
                       {rpt.status === "ignored" ? <FaBan /> : <FaCheck />}
                     </span>

@@ -27,17 +27,21 @@ export default function AdminCommentsPage() {
   const handleExport = async () => {
     try {
       const toastId = toast.loading("Đang xuất dữ liệu...");
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/reviews", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          limit: 1000, // Export limit
-          search: search || undefined,
-          status: statusFilter || undefined,
-          rating: ratingFilter || undefined,
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-        },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/reviews",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: {
+            limit: 1000, // Export limit
+            search: search || undefined,
+            status: statusFilter || undefined,
+            rating: ratingFilter || undefined,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+          },
+        }
+      );
 
       const items = res.data.items || [];
       const csvContent = [
@@ -94,18 +98,22 @@ export default function AdminCommentsPage() {
       endDate,
     ],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/reviews", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: {
-          page,
-          limit: 10,
-          search: search || undefined,
-          status: statusFilter || undefined,
-          rating: ratingFilter || undefined,
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-        },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/reviews",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: {
+            page,
+            limit: 10,
+            search: search || undefined,
+            status: statusFilter || undefined,
+            rating: ratingFilter || undefined,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+          },
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -115,7 +123,8 @@ export default function AdminCommentsPage() {
     queryKey: ["admin-reviews-stats"],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/reviews/stats",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/reviews/stats",
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
       return res.data;
@@ -143,9 +152,12 @@ export default function AdminCommentsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reviews/${id}`, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reviews/${id}`,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
@@ -242,40 +254,46 @@ export default function AdminCommentsPage() {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
-        <div className="relative flex-1 max-w-lg">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm người dùng, email, địa điểm hoặc nội dung..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 bg-gray-50"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="relative w-full md:w-96">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm người dùng, email, địa điểm hoặc nội dung..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 bg-gray-50"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            {[
+              { label: "Tất cả", value: "" },
+              { label: "Bị báo cáo", value: "reported" },
+              { label: "Đã ẩn", value: "hidden" },
+              { label: "Hợp lệ", value: "clean" },
+            ].map((item) => (
+              <button
+                key={item.value || "all"}
+                onClick={() => setStatusFilter(item.value)}
+                className={`px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap flex-shrink-0 ${
+                  statusFilter === item.value
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          {[
-            { label: "Tất cả", value: "" },
-            { label: "Bị báo cáo", value: "reported" },
-            { label: "Đã ẩn", value: "hidden" },
-            { label: "Hợp lệ", value: "clean" },
-          ].map((item) => (
-            <button
-              key={item.value || "all"}
-              onClick={() => setStatusFilter(item.value)}
-              className={`px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap ${
-                statusFilter === item.value
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={ratingFilter}
             onChange={(e) => setRatingFilter(e.target.value)}
-            className="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 outline-none focus:border-blue-500"
+            className="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 outline-none focus:border-blue-500 w-full md:w-auto"
           >
             <option value="">Tất cả sao</option>
             {[5, 4, 3, 2, 1].map((rating) => (
@@ -285,27 +303,121 @@ export default function AdminCommentsPage() {
             ))}
           </select>
 
-          <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 bg-white">
+          <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 bg-white w-full md:w-auto">
             <input
               type="date"
-              className="py-2 text-sm text-gray-600 outline-none bg-transparent"
+              className="py-2 text-sm text-gray-600 outline-none bg-transparent flex-1"
               title="Từ ngày"
-              onChange={(e) => {
-                // Update query state if we had it, for now just placeholder or we can add state
-                // To minimize complexity in this step, let's assume we'll add state in next step or use simple date logic
-              }}
+              onChange={(e) => setStartDate(e.target.value)}
             />
             <span className="text-gray-400">-</span>
             <input
               type="date"
-              className="py-2 text-sm text-gray-600 outline-none bg-transparent"
+              className="py-2 text-sm text-gray-600 outline-none bg-transparent flex-1"
               title="Đến ngày"
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {isLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Đang tải dữ liệu...
+          </div>
+        ) : isError ? (
+          <div className="p-4 text-center text-red-500">
+            Lỗi khi tải dữ liệu
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            Chưa có đánh giá nào
+          </div>
+        ) : (
+          reviews.map((review: any) => {
+            const displayName =
+              review.user?.name || review.userName || "Ẩn danh";
+            return (
+              <div
+                key={review._id}
+                className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-gray-700">
+                      {displayName.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm">
+                        {displayName}
+                      </h4>
+                      <div className="flex text-yellow-400 text-xs">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar
+                            key={i}
+                            className={i < review.rating ? "" : "text-gray-300"}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {getStatusBadge(review.status)}
+                </div>
+
+                <div className="mb-3">
+                  <p className="text-gray-600 italic text-sm line-clamp-3">
+                    "{review.content}"
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1 font-medium">
+                    {review.location?.name || "Không xác định"}
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                  <span className="text-xs text-gray-400">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
+                      onClick={() =>
+                        updateMutation.mutate({
+                          id: review._id,
+                          status: "clean",
+                        })
+                      }
+                    >
+                      <FaCheck />
+                    </button>
+                    <button
+                      className="p-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
+                      onClick={() =>
+                        updateMutation.mutate({
+                          id: review._id,
+                          status: "reported",
+                        })
+                      }
+                    >
+                      <FaExclamationTriangle />
+                    </button>
+                    <button
+                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                      onClick={() => deleteMutation.mutate(review._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 text-gray-500 font-bold text-xs uppercase border-b border-gray-200">
             <tr>

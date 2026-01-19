@@ -26,8 +26,11 @@ import {
 import CommentSection from "@/components/CommentSection";
 import Link from "next/link";
 
+// Constants
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 const formatDateTime = (value?: string) => {
-  if (!value) return "";
+  if (!value) return "Vừa xong";
   const date = new Date(value);
   return date.toLocaleDateString("vi-VN", {
     day: "2-digit",
@@ -52,7 +55,7 @@ export default function PostDetailPage() {
   } = useQuery({
     queryKey: ["post", postId],
     queryFn: async () => {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}`);
+      const res = await axios.get(`${API_URL}/api/posts/${postId}`);
       return res.data;
     },
   });
@@ -60,7 +63,7 @@ export default function PostDetailPage() {
   const { data: popularPosts } = useQuery({
     queryKey: ["popular-posts"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts?limit=5");
+      const res = await axios.get(`${API_URL}/api/posts?limit=5`);
       return res.data.items;
     },
   });
@@ -70,18 +73,13 @@ export default function PostDetailPage() {
   const { data: authorProfile } = useQuery({
     queryKey: ["author-profile", authorId, session?.user?.accessToken],
     queryFn: async () => {
-      const config = {};
-      // @ts-ignore
+      const config: any = {};
       if (session?.user?.accessToken) {
-        // @ts-ignore
         config.headers = {
           Authorization: `Bearer ${session.user.accessToken}`,
         };
       }
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${authorId}`,
-        config
-      );
+      const res = await axios.get(`${API_URL}/api/users/${authorId}`, config);
       return res.data;
     },
     enabled: !!authorId,
@@ -96,7 +94,7 @@ export default function PostDetailPage() {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/like`,
+        `${API_URL}/api/posts/${postId}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -115,7 +113,7 @@ export default function PostDetailPage() {
     },
     onError: () => {
       toast.error("Vui lòng đăng nhập để thả tim");
-      router.push("/login");
+      // router.push("/login"); // Optional: redirect to login
     },
   });
 
@@ -126,7 +124,7 @@ export default function PostDetailPage() {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${authorId}/follow`,
+        `${API_URL}/api/users/${authorId}/follow`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -177,21 +175,30 @@ export default function PostDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
+        <p className="text-gray-500 animate-pulse">Đang tải bài viết...</p>
       </div>
     );
   }
 
   if (isError || !post) {
     return (
-      <div className="min-h-screen pt-24 flex flex-col items-center justify-center text-gray-500">
-        <p className="mb-4">Không tìm thấy bài viết hoặc đã bị xóa.</p>
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center text-gray-500 px-4 text-center">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <FaArrowLeft className="text-gray-400 text-2xl" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
+          Không tìm thấy bài viết
+        </h2>
+        <p className="mb-6 max-w-md">
+          Bài viết này có thể đã bị xóa hoặc không còn tồn tại trên hệ thống.
+        </p>
         <button
           onClick={() => router.back()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+          className="px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-medium shadow-lg shadow-blue-200"
         >
-          Quay lại
+          Quay lại trang trước
         </button>
       </div>
     );
@@ -204,34 +211,40 @@ export default function PostDetailPage() {
   const isMe = session?.user?.id === post.createdBy?._id;
 
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-gray-50">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Breadcrumb */}
-        <div className="text-sm text-gray-500 mb-6 flex items-center gap-2">
-          <Link href="/" className="hover:text-blue-600">
+    <main className="min-h-screen pt-20 md:pt-24 pb-20 bg-gray-50">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Breadcrumb - Mobile Optimized */}
+        <nav
+          className="text-sm text-gray-500 mb-4 md:mb-6 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar"
+          aria-label="Breadcrumb"
+        >
+          <Link href="/" className="hover:text-blue-600 transition-colors">
             Trang chủ
           </Link>
-          <span>/</span>
-          <Link href="/cong-dong" className="hover:text-blue-600">
+          <span className="text-gray-300">/</span>
+          <Link
+            href="/cong-dong"
+            className="hover:text-blue-600 transition-colors"
+          >
             Cộng đồng
           </Link>
-          <span>/</span>
+          <span className="text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate max-w-[200px]">
             {post.title}
           </span>
-        </div>
+        </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
           {/* Main Content - Left Column */}
-          <div className="lg:col-span-2">
-            <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="lg:col-span-8">
+            <article className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
               {/* Post Header Info */}
-              <div className="p-6 md:p-8 pb-0">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
+              <div className="p-4 md:p-8 md:pb-0">
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <Link
                       href={`/thanh-vien/${post.createdBy?._id}`}
-                      className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 hover:opacity-90 transition"
+                      className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 hover:ring-2 hover:ring-blue-100 transition-all"
                     >
                       {post.createdBy?.avatar ? (
                         <Image
@@ -239,28 +252,32 @@ export default function PostDetailPage() {
                           alt={post.createdBy.name}
                           fill
                           className="object-cover"
+                          sizes="48px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
                           <FaUserCircle size={24} />
                         </div>
                       )}
                     </Link>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={`/thanh-vien/${post.createdBy?._id}`}
-                          className="font-bold text-gray-900 text-base hover:text-blue-600 transition"
+                          className="font-bold text-gray-900 text-sm md:text-base hover:text-blue-600 transition"
                         >
                           {post.createdBy?.name || "Người dùng ẩn danh"}
                         </Link>
-                        <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                          Người dùng
+                        <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border border-green-100">
+                          Thành viên
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Đăng ngày {formatDateTime(post.createdAt)}
-                      </p>
+                      <time
+                        className="text-xs text-gray-500 mt-0.5 block"
+                        dateTime={post.createdAt}
+                      >
+                        {formatDateTime(post.createdAt)}
+                      </time>
                     </div>
                   </div>
 
@@ -268,112 +285,150 @@ export default function PostDetailPage() {
                     <button
                       onClick={() => followMutation.mutate(post.createdBy?._id)}
                       disabled={followMutation.isPending}
-                      className={`hidden sm:flex items-center gap-1.5 px-4 py-1.5 border rounded-full text-sm font-bold transition ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold transition-all active:scale-95 ${
                         isFollowingAuthor
-                          ? "bg-blue-50 text-blue-600 border-blue-600"
-                          : "border-blue-600 text-blue-600 hover:bg-blue-50"
+                          ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-200"
                       }`}
                     >
                       {isFollowingAuthor ? (
                         <>
-                          <FaCheckCircle size={12} /> Đang theo dõi
+                          <FaCheckCircle className="text-sm" />{" "}
+                          <span className="hidden sm:inline">
+                            Đang theo dõi
+                          </span>
+                          <span className="sm:hidden">Theo dõi</span>
                         </>
                       ) : (
                         <>
-                          <FaPlus size={12} /> Theo dõi
+                          <FaPlus className="text-sm" /> Theo dõi
                         </>
                       )}
                     </button>
                   )}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-4">
                   {post.title}
                 </h1>
               </div>
 
               {/* Header Image */}
               {post.imageUrl && (
-                <div className="relative w-full h-[300px] md:h-[400px] mx-auto">
+                <div className="relative w-full h-[250px] sm:h-[350px] md:h-[450px] bg-gray-100">
                   <Image
                     src={post.imageUrl}
                     alt={post.title}
                     fill
                     className="object-cover"
                     priority
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 800px"
+                    unoptimized={!post.imageUrl.startsWith("/")}
                   />
                 </div>
               )}
 
-              <div className="p-6 md:p-8">
+              <div className="p-4 md:p-8">
                 {/* Content */}
                 <div
-                  className="prose prose-lg max-w-none text-gray-700 mb-8 prose-imgs:rounded-xl prose-a:text-blue-600 hover:prose-a:underline"
+                  className="prose prose-lg md:prose-xl max-w-none text-gray-700 mb-8 prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-sm"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 
                 {/* Interactions Bar */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
-                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div className="flex items-center w-full sm:w-auto gap-3">
                     <button
                       onClick={() => likeMutation.mutate()}
-                      className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all flex-1 sm:flex-none justify-center ${
+                      className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all flex-1 sm:flex-none justify-center group ${
                         isLiked
-                          ? "bg-red-50 text-red-600 font-bold shadow-inner"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium"
+                          ? "bg-red-50 text-red-600 font-bold border border-red-100"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 font-medium"
                       }`}
+                      aria-label={isLiked ? "Bỏ thích" : "Thích bài viết"}
                     >
-                      {isLiked ? <FaHeart /> : <FaRegHeart />}
-                      <span>{likeCount} Yêu thích</span>
+                      {isLiked ? (
+                        <FaHeart className="text-xl group-active:scale-125 transition-transform" />
+                      ) : (
+                        <FaRegHeart className="text-xl group-active:scale-125 transition-transform" />
+                      )}
+                      <span>{likeCount}</span>
                     </button>
 
-                    <button className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all font-medium flex-1 sm:flex-none justify-center">
-                      <FaComment />
-                      <span>{post.comments?.length || 0} Bình luận</span>
+                    <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all font-medium flex-1 sm:flex-none justify-center group">
+                      <FaComment className="text-xl group-hover:text-blue-600 transition-colors" />
+                      <span>{post.comments?.length || 0}</span>
                     </button>
                   </div>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
-                      <FaFacebook size={18} />
+                    <button
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                      aria-label="Share on Facebook"
+                    >
+                      <FaFacebook size={20} />
                     </button>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
-                      <FaFacebookMessenger size={18} />
+                    <button
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                      aria-label="Share on Messenger"
+                    >
+                      <FaFacebookMessenger size={20} />
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all text-sm font-medium">
-                      <FaLink /> Sao chép link
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all text-sm font-bold"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success("Đã sao chép liên kết");
+                      }}
+                    >
+                      <FaLink />{" "}
+                      <span className="hidden sm:inline">Sao chép</span>
                     </button>
                   </div>
                 </div>
 
-                <CommentSection postId={postId} />
+                <div className="mt-8">
+                  <CommentSection postId={postId} />
+                </div>
               </div>
             </article>
           </div>
 
           {/* Sidebar - Right Column */}
-          <div className="space-y-8">
+          <aside className="lg:col-span-4 space-y-6 md:space-y-8">
             {/* Related Location Card */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 text-xs uppercase tracking-wider">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+              <h3 className="font-bold text-gray-800 mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
+                <FaMapMarkerAlt className="text-blue-500" />
                 Địa điểm liên quan
               </h3>
-              <div className="relative h-32 w-full rounded-xl overflow-hidden mb-4 bg-gray-100">
-                {/* Placeholder Map Image */}
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-200">
-                  <FaMapMarkerAlt size={32} />
-                  <span className="ml-2 text-sm font-medium">Bản đồ</span>
+              <div className="relative h-40 w-full rounded-xl overflow-hidden mb-4 bg-gray-100 group cursor-pointer">
+                {/* This should be dynamic based on post location data if available */}
+                <Image
+                  src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=1000&auto=format&fit=crop"
+                  alt="Map placeholder"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                  <div className="text-white">
+                    <h4 className="font-bold text-lg leading-tight">
+                      Đỉnh Tà Xùa
+                    </h4>
+                    <p className="text-xs text-gray-200 opacity-80">
+                      Bắc Yên, Sơn La
+                    </p>
+                  </div>
                 </div>
               </div>
-              <h4 className="font-bold text-gray-900 text-lg mb-1">
-                Đỉnh Tà Xùa
-              </h4>
-              <p className="text-gray-500 text-xs mb-4">Bắc Yên, Sơn La</p>
+
               <div className="flex gap-2">
-                <button className="flex-1 bg-teal-600 text-white rounded-lg py-2 text-sm font-bold hover:bg-teal-700 transition">
-                  Chỉ đường
+                <button className="flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
+                  <FaPaperPlane /> Chỉ đường
                 </button>
-                <button className="w-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition">
+                <button
+                  className="w-12 flex items-center justify-center bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 border border-gray-200 transition"
+                  aria-label="Lưu địa điểm"
+                >
                   <FaBookmark />
                 </button>
               </div>
@@ -381,41 +436,46 @@ export default function PostDetailPage() {
 
             {/* Popular Posts */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 text-xs uppercase tracking-wider">
-                Bài viết phổ biến
+              <h3 className="font-bold text-gray-800 mb-4 text-xs uppercase tracking-wider border-b border-gray-100 pb-2">
+                Bài viết nổi bật
               </h3>
               <div className="space-y-4">
                 {popularPosts?.map((p: any) => (
                   <Link
                     href={`/bai-viet/${p._id}`}
                     key={p._id}
-                    className="flex gap-3 group"
+                    className="flex gap-4 group items-start"
                   >
-                    <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-100 border border-gray-100">
                       {p.imageUrl && (
                         <Image
                           src={p.imageUrl}
                           alt={p.title}
                           fill
-                          className="object-cover group-hover:scale-105 transition duration-300"
+                          className="object-cover group-hover:scale-110 transition duration-500"
+                          sizes="80px"
                         />
                       )}
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition">
+                      <h4 className="font-bold text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition leading-snug">
                         {p.title}
                       </h4>
-                      <span className="text-xs text-gray-400 mt-1 block">
-                        {p.views || 0} lượt xem
-                      </span>
+                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                        <span>
+                          {new Date(p.createdAt).toLocaleDateString("vi-VN")}
+                        </span>
+                        <span>•</span>
+                        <span>{p.views || 0} xem</span>
+                      </div>
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

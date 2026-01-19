@@ -5,10 +5,8 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   FaCheck,
-  FaChevronDown,
   FaEdit,
   FaEye,
-  FaFilter,
   FaPlus,
   FaSearch,
   FaTimes, // Used for Reject icon
@@ -88,10 +86,14 @@ export default function AdminLocationsPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["admin-cities-select"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: { limit: 100 },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/cities",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: { limit: 100 },
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -105,10 +107,14 @@ export default function AdminLocationsPage() {
       if (filterCategory) params.category = filterCategory;
       if (filterProvince) params.province = filterProvince;
 
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/locations", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params,
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/locations",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params,
+        }
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -117,9 +123,12 @@ export default function AdminLocationsPage() {
   // Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
@@ -194,7 +203,8 @@ export default function AdminLocationsPage() {
     queryKey: ["admin-locations-stats"],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/locations/stats",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/locations/stats",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -254,176 +264,297 @@ export default function AdminLocationsPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 text-sm text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 text-sm text-gray-600 w-full md:w-auto">
             <FaSearch className="text-gray-400" />
             <input
               placeholder="Tìm tên địa điểm..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent outline-none w-56"
+              className="bg-transparent outline-none w-full md:w-56"
             />
           </div>
 
-          <select
-            value={filterProvince}
-            onChange={(e) => setFilterProvince(e.target.value)}
-            className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none"
-          >
-            <option value="">Tất cả tỉnh thành</option>
-            {citiesData?.items?.map((c: any) => (
-              <option key={c._id} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <select
+              value={filterProvince}
+              onChange={(e) => setFilterProvince(e.target.value)}
+              className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none whitespace-nowrap"
+            >
+              <option value="">Tất cả tỉnh thành</option>
+              {citiesData?.items?.map((c: any) => (
+                <option key={c._id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none"
-          >
-            <option value="">Tất cả danh mục</option>
-            <option value="Kỳ quan">Kỳ quan</option>
-            <option value="Biển đảo">Biển đảo</option>
-            <option value="Lịch sử">Lịch sử</option>
-            <option value="Ẩm thực">Ẩm thực</option>
-          </select>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none whitespace-nowrap"
+            >
+              <option value="">Tất cả danh mục</option>
+              <option value="Kỳ quan">Kỳ quan</option>
+              <option value="Biển đảo">Biển đảo</option>
+              <option value="Lịch sử">Lịch sử</option>
+              <option value="Ẩm thực">Ẩm thực</option>
+            </select>
+          </div>
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="text-xs uppercase text-gray-400 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 text-left">Tên địa điểm</th>
-              <th className="px-4 py-3 text-left">Tỉnh thành</th>
-              <th className="px-4 py-3 text-left">Danh mục</th>
-              <th className="px-4 py-3 text-left">Trạng thái</th>
-              <th className="px-4 py-3 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {isLoading ? (
-              <tr>
-                <td className="px-4 py-6 text-gray-400" colSpan={5}>
-                  Đang tải dữ liệu...
-                </td>
-              </tr>
-            ) : isError ? (
-              <tr>
-                <td className="px-4 py-6 text-red-500" colSpan={5}>
-                  Có lỗi khi tải dữ liệu.
-                </td>
-              </tr>
-            ) : (
-              locations.map((loc: any) => (
-                <tr key={loc._id}>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-10 h-10 rounded-lg overflow-hidden">
-                        {loc.imageUrl ? (
-                          <Image
-                            src={loc.imageUrl}
-                            alt={loc.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <img
-                            src="https://placehold.co/80x80"
-                            alt={loc.name}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {loc.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          ID: {loc._id?.slice(-6)}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-gray-600">{loc.province}</td>
-                  <td className="px-4 py-4">
-                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-50 text-blue-600">
-                      {loc.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        loc.status === "approved"
-                          ? "bg-emerald-100 text-emerald-600"
-                          : loc.status === "rejected"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-orange-100 text-orange-600"
-                      }`}
-                    >
-                      {loc.status === "approved"
-                        ? "Hoạt động"
-                        : loc.status === "rejected"
-                          ? "Từ chối"
-                          : "Chờ duyệt"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right text-gray-400">
-                    <div className="flex justify-end gap-3">
-                      {loc.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(loc._id)}
-                            className="hover:text-emerald-600 flex items-center disabled:opacity-50"
-                            title="Duyệt"
-                            disabled={processingId === loc._id}
-                          >
-                            {processingId === loc._id &&
-                            updateStatusMutation.isPending ? (
-                              <FaSpinner className="animate-spin text-emerald-600" />
-                            ) : (
-                              <FaCheck />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleRejectClick(loc._id)}
-                            className="hover:text-red-500 flex items-center"
-                            title="Từ chối"
-                            disabled={processingId === loc._id}
-                          >
-                            <FaTimes />
-                          </button>
-                          <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                        </>
+        {/* Mobile Card View */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {isLoading ? (
+            <div className="text-center p-4 text-gray-500">
+              Đang tải dữ liệu...
+            </div>
+          ) : isError ? (
+            <div className="text-center p-4 text-red-500">Có lỗi xảy ra.</div>
+          ) : locations.length > 0 ? (
+            locations.map((loc: any) => (
+              <div
+                key={loc._id}
+                className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                      {loc.imageUrl ? (
+                        <Image
+                          src={loc.imageUrl}
+                          alt={loc.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <img
+                          src="https://placehold.co/80x80"
+                          alt={loc.name}
+                          className="h-full w-full object-cover"
+                        />
                       )}
-
-                      <Link
-                        href={`/dia-diem/${loc._id}`}
-                        target="_blank"
-                        className="hover:text-blue-600 flex items-center"
-                      >
-                        <FaEye />
-                      </Link>
-                      <Link
-                        href={`/admin/locations/${loc._id}`}
-                        className="hover:text-blue-600 flex items-center"
-                      >
-                        <FaEdit />
-                      </Link>
-                      <button
-                        className="hover:text-red-500"
-                        onClick={() => handleDelete(loc._id)}
-                      >
-                        <FaTrash />
-                      </button>
                     </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800 line-clamp-1">
+                        {loc.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">{loc.province}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      loc.status === "approved"
+                        ? "bg-emerald-100 text-emerald-600"
+                        : loc.status === "rejected"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-orange-100 text-orange-600"
+                    }`}
+                  >
+                    {loc.status === "approved"
+                      ? "Hoạt động"
+                      : loc.status === "rejected"
+                        ? "Từ chối"
+                        : "Chờ duyệt"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">
+                  <div className="flex gap-2">
+                    {loc.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(loc._id)}
+                          className="p-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200"
+                          title="Duyệt"
+                          disabled={processingId === loc._id}
+                        >
+                          {processingId === loc._id &&
+                          updateStatusMutation.isPending ? (
+                            <FaSpinner className="animate-spin" />
+                          ) : (
+                            <FaCheck />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleRejectClick(loc._id)}
+                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                          title="Từ chối"
+                          disabled={processingId === loc._id}
+                        >
+                          <FaTimes />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
+                      onClick={() => handleDelete(loc._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/dia-diem/${loc._id}`}
+                      target="_blank"
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Xem
+                    </Link>
+                    <Link
+                      href={`/admin/locations/${loc._id}`}
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Sửa
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center p-8 text-gray-500">
+              Không tìm thấy địa điểm nào.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase text-gray-400 border-b border-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left">Tên địa điểm</th>
+                <th className="px-4 py-3 text-left">Tỉnh thành</th>
+                <th className="px-4 py-3 text-left">Danh mục</th>
+                <th className="px-4 py-3 text-left">Trạng thái</th>
+                <th className="px-4 py-3 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {isLoading ? (
+                <tr>
+                  <td className="px-4 py-6 text-gray-400" colSpan={5}>
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : isError ? (
+                <tr>
+                  <td className="px-4 py-6 text-red-500" colSpan={5}>
+                    Có lỗi khi tải dữ liệu.
+                  </td>
+                </tr>
+              ) : (
+                locations.map((loc: any) => (
+                  <tr key={loc._id}>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                          {loc.imageUrl ? (
+                            <Image
+                              src={loc.imageUrl}
+                              alt={loc.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <img
+                              src="https://placehold.co/80x80"
+                              alt={loc.name}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            {loc.name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            ID: {loc._id?.slice(-6)}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-gray-600">{loc.province}</td>
+                    <td className="px-4 py-4">
+                      <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-50 text-blue-600">
+                        {loc.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          loc.status === "approved"
+                            ? "bg-emerald-100 text-emerald-600"
+                            : loc.status === "rejected"
+                              ? "bg-red-100 text-red-600"
+                              : "bg-orange-100 text-orange-600"
+                        }`}
+                      >
+                        {loc.status === "approved"
+                          ? "Hoạt động"
+                          : loc.status === "rejected"
+                            ? "Từ chối"
+                            : "Chờ duyệt"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right text-gray-400">
+                      <div className="flex justify-end gap-3">
+                        {loc.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(loc._id)}
+                              className="hover:text-emerald-600 flex items-center disabled:opacity-50"
+                              title="Duyệt"
+                              disabled={processingId === loc._id}
+                            >
+                              {processingId === loc._id &&
+                              updateStatusMutation.isPending ? (
+                                <FaSpinner className="animate-spin text-emerald-600" />
+                              ) : (
+                                <FaCheck />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleRejectClick(loc._id)}
+                              className="hover:text-red-500 flex items-center"
+                              title="Từ chối"
+                              disabled={processingId === loc._id}
+                            >
+                              <FaTimes />
+                            </button>
+                            <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                          </>
+                        )}
+
+                        <Link
+                          href={`/dia-diem/${loc._id}`}
+                          target="_blank"
+                          className="hover:text-blue-600 flex items-center"
+                        >
+                          <FaEye />
+                        </Link>
+                        <Link
+                          href={`/admin/locations/${loc._id}`}
+                          className="hover:text-blue-600 flex items-center"
+                        >
+                          <FaEdit />
+                        </Link>
+                        <button
+                          className="hover:text-red-500"
+                          onClick={() => handleDelete(loc._id)}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>

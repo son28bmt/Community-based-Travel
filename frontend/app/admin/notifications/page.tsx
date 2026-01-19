@@ -23,7 +23,8 @@ export default function AdminNotificationsPage() {
     queryKey: ["admin-notifications", page],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/notifications",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { page, limit: 20 },
@@ -37,7 +38,8 @@ export default function AdminNotificationsPage() {
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       return axios.patch(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications/read-all",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/notifications/read-all",
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
@@ -89,7 +91,8 @@ export default function AdminNotificationsPage() {
   const createMutation = useMutation({
     mutationFn: async (formData: any) => {
       return axios.post(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/notifications",
         formData,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
@@ -257,7 +260,7 @@ export default function AdminNotificationsPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <FaBell className="text-blue-500" /> Thông báo hệ thống
@@ -266,24 +269,26 @@ export default function AdminNotificationsPage() {
             Cập nhật mới nhất về các hoạt động trên hệ thống.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 w-full md:w-auto">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-0.5"
           >
-            <FaPlus /> Gửi thông báo
+            <FaPlus /> <span className="md:hidden">Tạo mới</span>{" "}
+            <span className="hidden md:inline">Gửi thông báo</span>
           </button>
           <button
             onClick={() => markAllReadMutation.mutate()}
             disabled={markAllReadMutation.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             {markAllReadMutation.isPending ? (
               <FaSpinner className="animate-spin" />
             ) : (
               <FaCheckDouble className="text-blue-600" />
             )}
-            Đánh dấu tất cả đã đọc
+            <span className="md:hidden">Đọc tất cả</span>{" "}
+            <span className="hidden md:inline">Đánh dấu tất cả đã đọc</span>
           </button>
         </div>
       </div>
@@ -366,7 +371,7 @@ export default function AdminNotificationsPage() {
 
                 <div className="flex flex-col items-end gap-2 pl-4 border-l border-gray-100 ml-2">
                   {!notif.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mb-auto mt-2"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mb-auto mt-2 shrink-0"></div>
                   )}
                   <button
                     onClick={(e) => {
@@ -375,7 +380,7 @@ export default function AdminNotificationsPage() {
                         deleteMutation.mutate(notif._id);
                       }
                     }}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100 opacity-100"
                     title="Xóa thông báo"
                   >
                     <FaTrash />

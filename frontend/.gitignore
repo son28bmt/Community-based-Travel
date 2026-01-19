@@ -12,7 +12,8 @@
 
 # testing
 /coverage
-
+#skill_FE_UI
+skill_FE_UI
 # next.js
 /.next/
 /out/
