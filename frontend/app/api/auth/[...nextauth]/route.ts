@@ -63,10 +63,12 @@ const handler = NextAuth({
                     if (res.ok) {
                         const data = await res.json();
                         // Attach backend token to user object so it can be used in jwt callback
-                        user.token = data.token;
-                        user.role = data.user.role;
-                        user.id = data.user._id;
-                        user.avatar = data.user.avatar;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const u = user as any;
+                        u.token = data.token;
+                        u.role = data.user.role;
+                        u.id = data.user._id;
+                        u.avatar = data.user.avatar;
                         return true;
                     }
                     return false;
