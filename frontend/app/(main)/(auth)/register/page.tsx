@@ -2,13 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  FaGoogle,
-  FaFacebookF,
-  FaEnvelope,
-  FaLock,
-  FaUser,
-} from "react-icons/fa";
+import { FaGoogle, FaEnvelope, FaLock, FaUser } from "react-icons/fa";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -220,20 +215,21 @@ export default function RegisterPage() {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div>
-              <a
-                href="#"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              <button
+                type="button"
+                onClick={() => signIn("google", { callbackUrl: "/" })}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
               >
                 <FaGoogle className="text-red-500 text-lg" />
-              </a>
+              </button>
             </div>
             <div>
-              <a
+              {/* <a
                 href="#"
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
               >
                 <FaFacebookF className="text-blue-600 text-lg" />
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

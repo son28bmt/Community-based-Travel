@@ -6,6 +6,7 @@ const City = require("../models/City");
 // @route   GET /api/locations
 // @access  Public
 const getLocations = async (req, res, next) => {
+  console.log("getLocations called, typeof next:", typeof next);
   try {
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit, 10) || 12, 1);
@@ -39,18 +40,25 @@ const getLocations = async (req, res, next) => {
 
     // Helper to map categories to parent names
     const mapToParentCategory = async (locs) => {
+      if (!Array.isArray(locs)) return locs;
+
       return Promise.all(
         locs.map(async (loc) => {
-          const locObj = loc.toObject ? loc.toObject() : loc;
-          // Find the category doc for this location
-          const catDoc = await Category.findOne({
-            name: locObj.category,
-          }).populate("parent");
-          if (catDoc && catDoc.parent) {
-            locObj.category = catDoc.parent.name;
+          try {
+            const locObj = loc.toObject ? loc.toObject() : { ...loc };
+            // Find the category doc for this location
+            const catDoc = await Category.findOne({
+              name: locObj.category,
+            }).populate("parent");
+            if (catDoc && catDoc.parent) {
+              locObj.category = catDoc.parent.name;
+            }
+            return locObj;
+          } catch (err) {
+            console.error("Error in mapToParentCategory:", err);
+            return loc.toObject ? loc.toObject() : { ...loc };
           }
-          return locObj;
-        })
+        }),
       );
     };
 
@@ -77,7 +85,7 @@ const getLocations = async (req, res, next) => {
       // 2. Detect Category if not set
       if (!category) {
         const categories = await Category.find({ status: "active" }).select(
-          "name"
+          "name",
         );
         for (const cat of categories) {
           const catNormalized = removeVietnameseTones(cat.name).toLowerCase();
@@ -121,7 +129,7 @@ const getLocations = async (req, res, next) => {
         "Category:",
         category,
         "Province:",
-        province
+        province,
       );
     }
 
@@ -250,7 +258,7 @@ const getLocation = async (req, res, next) => {
   try {
     const location = await Location.findById(req.params.id).populate(
       "createdBy",
-      "name"
+      "name",
     );
 
     if (!location || location.status !== "approved") {

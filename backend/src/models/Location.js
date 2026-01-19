@@ -26,12 +26,11 @@ const locationSchema = new mongoose.Schema(
 );
 
 // Soft delete middleware
-locationSchema.pre(/^find/, function (next) {
+locationSchema.pre(/^find/, function () {
   if (this.options?.withDeleted) {
-    return next();
+    return;
   }
   this.find({ deletedAt: null });
-  next();
 });
 
 module.exports = mongoose.model("Location", locationSchema);

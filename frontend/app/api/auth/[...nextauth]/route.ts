@@ -1,8 +1,13 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 const handler = NextAuth({
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+        }),
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -22,14 +27,13 @@ const handler = NextAuth({
                     const user = await res.json();
 
                     if (res.ok && user.token) {
-                        // Map backend response to NextAuth User object
                         return {
                             id: user.user._id || user.user.id,
                             name: user.user.name,
                             username: user.user.username,
                             email: user.user.email,
-                            role: user.user.role || 'user', // Default to user if undefined
-                            avatar: user.user.avatar, // Pass avatar for initial mapping
+                            role: user.user.role || 'user',
+                            avatar: user.user.avatar,
                             token: user.token,
                         };
                     }
@@ -42,19 +46,50 @@ const handler = NextAuth({
         }),
     ],
     callbacks: {
+        async signIn({ user, account, profile }) {
+            if (account?.provider === "google") {
+                try {
+                    const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/auth/google", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: user.email,
+                            name: user.name,
+                            picture: user.image,
+                            googleId: account.providerAccountId,
+                        }),
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        // Attach backend token to user object so it can be used in jwt callback
+                        user.token = data.token;
+                        user.role = data.user.role;
+                        user.id = data.user._id;
+                        user.avatar = data.user.avatar;
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error("Google Signin Error to Backend:", error);
+                    return false;
+                }
+            }
+            return true;
+        },
         async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
-                token.accessToken = (user as any).token;
+                token.accessToken = (user as any).token; // This will perform for both Google and Credentials
                 token.name = user.name;
-                token.username = (user as any).username; // Map username
-                token.picture = (user as any).avatar;
+                token.username = (user as any).username;
+                token.picture = (user as any).avatar || user.image;
             }
             if (trigger === "update" && session?.user) {
                 if (session.user.name) token.name = session.user.name;
                 if (session.user.image) token.picture = session.user.image;
-                if ((session.user as any).username) token.username = (session.user as any).username; // Update username
+                if ((session.user as any).username) token.username = (session.user as any).username;
             }
             return token;
         },
@@ -64,7 +99,7 @@ const handler = NextAuth({
                 (session.user as any).role = token.role as string;
                 (session.user as any).accessToken = token.accessToken as string;
                 session.user.name = token.name as string;
-                (session.user as any).username = token.username as string; // Pass to session
+                (session.user as any).username = token.username as string;
                 session.user.image = token.picture as string;
             }
             return session;
@@ -73,7 +108,7 @@ const handler = NextAuth({
     pages: {
         signIn: "/login",
     },
-    secret: process.env.NEXTAUTH_SECRET || "supersecretkey123", // Should be in .env
+    secret: process.env.NEXTAUTH_SECRET || "supersecretkey123",
 });
 
 export { handler as GET, handler as POST };

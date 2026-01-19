@@ -21,12 +21,11 @@ const postSchema = new mongoose.Schema(
 );
 
 // Soft delete middleware
-postSchema.pre(/^find/, function (next) {
+postSchema.pre(/^find/, function () {
   if (this.options?.withDeleted) {
-    return next();
+    return;
   }
   this.find({ deletedAt: null });
-  next();
 });
 
 module.exports = mongoose.model("Post", postSchema);

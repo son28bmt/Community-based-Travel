@@ -1,5 +1,7 @@
 const notFound = (req, res, next) => {
-  res.status(404).json({ message: "Not Found" });
+  const error = new Error("Not Found");
+  error.statusCode = 404;
+  next(error);
 };
 
 const errorHandler = (err, req, res, next) => {

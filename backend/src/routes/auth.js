@@ -16,7 +16,7 @@ router.post(
       .withMessage("Password must be at least 6 characters"),
   ],
   validate,
-  register
+  register,
 );
 
 router.post(
@@ -26,7 +26,19 @@ router.post(
     body("password").notEmpty().withMessage("Password is required"),
   ],
   validate,
-  login
+  login,
+);
+
+router.post(
+  "/google",
+  [
+    body("email").isEmail().withMessage("Email is required"),
+    body("name").optional().isString(),
+    body("picture").optional().isString(),
+    body("googleId").optional().isString(),
+  ],
+  validate,
+  require("../controllers/authController").googleLogin,
 );
 
 router.get("/me", protect, getMe);

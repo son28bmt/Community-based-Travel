@@ -42,12 +42,11 @@ const userSchema = new mongoose.Schema(
 );
 
 // Soft delete middleware
-userSchema.pre(/^find/, function (next) {
+userSchema.pre(/^find/, function () {
   if (this.options?.withDeleted) {
-    return next();
+    return;
   }
   this.find({ deletedAt: null });
-  next();
 });
 
 userSchema.pre("save", async function hashPassword() {

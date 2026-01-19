@@ -90,6 +90,12 @@ export default function DiscoveryPage() {
     return html.replace(/<[^>]*>?/gm, "");
   };
 
+  const truncateText = (text: string, maxLength: number) => {
+    const clean = text.replace(/\s+/g, " ").trim();
+    if (clean.length <= maxLength) return clean;
+    return `${clean.slice(0, maxLength).trim()}...`;
+  };
+
   return (
     <main className="relative bg-slate-50 overflow-hidden min-h-screen">
       {/* Background Ambience */}
@@ -267,10 +273,15 @@ export default function DiscoveryPage() {
                       <h3 className="font-bold text-gray-900 text-sm md:text-lg mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-blue-600 transition-colors">
                         {item.name}
                       </h3>
-                      <p className="hidden md:block text-sm text-gray-500 line-clamp-2 mb-4">
-                        {stripHtml(item.description) ||
-                          "Một điểm đến tuyệt vời đang chờ bạn khám phá."}
+                      <p className="hidden md:block text-sm text-gray-500 clamp-3">
+                        {truncateText(
+                          stripHtml(item.description) ||
+                            "Một điểm đến tuyệt vời đang chờ bạn khám phá.",
+                          160,
+                        )}
                       </p>
+                      
+                      
                       <div className="mt-auto pt-2 md:pt-4 border-t border-gray-50 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-semibold text-blue-600">
                         <FaMapMarkerAlt />
                         <span className="truncate">{item.province}</span>
@@ -324,3 +335,4 @@ export default function DiscoveryPage() {
     </main>
   );
 }
+

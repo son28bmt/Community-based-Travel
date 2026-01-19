@@ -120,6 +120,12 @@ export default function Home() {
     return html.replace(/<[^>]*>?/gm, "");
   };
 
+  const truncateText = (text: string, maxLength: number) => {
+    const clean = text.replace(/\s+/g, " ").trim();
+    if (clean.length <= maxLength) return clean;
+    return `${clean.slice(0, maxLength).trim()}...`;
+  };
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* 
@@ -329,8 +335,11 @@ export default function Home() {
                       {city.name}
                     </h3>
                     <p className="hidden md:block text-sm text-gray-300 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                      {stripHtml(city.description) ||
-                        "Khám phá địa điểm du lịch..."}
+                      {truncateText(
+                        stripHtml(city.description) ||
+                          "Khám phá địa điểm du lịch...",
+                        140,
+                      )}
                     </p>
                   </div>
                 </Link>
@@ -417,9 +426,12 @@ export default function Home() {
                           />
                           <span className="line-clamp-1">{loc.province}</span>
                         </div>
-                        <p className="hidden md:block text-sm text-gray-500 line-clamp-2 mb-4">
-                          {stripHtml(loc.description) ||
-                            "Chưa có mô tả chi tiết."}
+                        <p className="hidden md:block text-sm text-gray-500 clamp-3">
+                          {truncateText(
+                            stripHtml(loc.description) ||
+                              "Chưa có mô tả chi tiết.",
+                            180,
+                          )}
                         </p>
                       </div>
 

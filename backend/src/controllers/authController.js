@@ -69,4 +69,46 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getMe };
+const googleLogin = async (req, res, next) => {
+  try {
+    const { email, name, picture, googleId } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // If user exists but no googleId, update it (merge account)
+      if (!user.googleId && googleId) {
+        user.googleId = googleId;
+        if (picture && !user.avatar) user.avatar = picture;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      // Generate a random password for security (user won't know it, uses Google to login)
+      const randomPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+
+      user = await User.create({
+        name: name || email.split("@")[0],
+        email,
+        password: randomPassword,
+        avatar: picture,
+        googleId,
+        role: "user", // Default role
+      });
+    }
+
+    const token = signToken(user);
+    return res.json({ token, user: sanitizeUser(user) });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { register, login, getMe, googleLogin };

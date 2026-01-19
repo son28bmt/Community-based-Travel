@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { FaGoogle, FaFacebookF, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { signIn, getSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -194,20 +194,21 @@ function LoginForm() {
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div>
-            <a
-              href="#"
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            <button
+              type="button"
+              onClick={() => signIn("google", { callbackUrl: "/" })}
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
             >
               <FaGoogle className="text-red-500 text-lg" />
-            </a>
+            </button>
           </div>
           <div>
-            <a
+            {/* <a
               href="#"
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
             >
               <FaFacebookF className="text-blue-600 text-lg" />
-            </a>
+            </a> */}
           </div>
         </div>
       </div>

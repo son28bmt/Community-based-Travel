@@ -17,6 +17,9 @@ import {
   FaRegShareSquare,
   FaMap,
   FaUserCircle,
+  FaTimes, // Added
+  FaChevronLeft, // Added
+  FaChevronRight, // Added
 } from "react-icons/fa";
 import { useSession } from "next-auth/react";
 import ReviewModal from "@/components/ReviewModal";
@@ -27,6 +30,8 @@ export default function LocationDetailPage() {
   const id = params?.id as string;
   const { data: session } = useSession();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false); // Added
+  const [lightboxIndex, setLightboxIndex] = useState(0); // Added
   const [showReviewModal, setShowReviewModal] = useState(false);
   const queryClient = useQueryClient();
 
@@ -243,7 +248,13 @@ export default function LocationDetailPage() {
                 )
               )}
 
-              <button className="absolute bottom-4 right-4 bg-white text-gray-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-100 transition-colors">
+              <button
+                onClick={() => {
+                  setLightboxIndex(0);
+                  setShowLightbox(true);
+                }}
+                className="absolute bottom-4 right-4 bg-white text-gray-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-100 transition-colors"
+              >
                 <FaImages />
                 Xem tất cả ảnh
               </button>
@@ -567,6 +578,75 @@ export default function LocationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {showLightbox && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setShowLightbox(false)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors z-[110]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLightbox(false);
+            }}
+          >
+            <FaTimes size={24} />
+          </button>
+
+          <div
+            className="relative w-full max-w-6xl h-full max-h-[90vh] flex items-center justify-center select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prev Button */}
+            {galleryImages.length > 1 && (
+              <button
+                className="absolute left-2 md:-left-12 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-3 rounded-full hover:bg-white/10 transition-colors z-[105]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) =>
+                    prev === 0 ? galleryImages.length - 1 : prev - 1,
+                  );
+                }}
+              >
+                <FaChevronLeft size={32} />
+              </button>
+            )}
+
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image
+                src={galleryImages[lightboxIndex]}
+                alt={`Image ${lightboxIndex + 1}`}
+                fill
+                className="object-contain"
+                unoptimized
+                priority
+              />
+            </div>
+
+            {/* Next Button */}
+            {galleryImages.length > 1 && (
+              <button
+                className="absolute right-2 md:-right-12 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-3 rounded-full hover:bg-white/10 transition-colors z-[105]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) =>
+                    prev === galleryImages.length - 1 ? 0 : prev + 1,
+                  );
+                }}
+              >
+                <FaChevronRight size={32} />
+              </button>
+            )}
+
+            {/* Counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md">
+              {lightboxIndex + 1} / {galleryImages.length}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
