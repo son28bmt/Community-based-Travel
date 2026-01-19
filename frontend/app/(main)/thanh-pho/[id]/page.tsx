@@ -38,7 +38,9 @@ export default function CityDetailPage() {
   const { data: cityData, isLoading: isCityLoading } = useQuery({
     queryKey: ["city", id],
     queryFn: async () => {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/cities/${id}`);
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/cities/${id}`,
+      );
       return res.data.city;
     },
     enabled: !!id,
@@ -48,14 +50,18 @@ export default function CityDetailPage() {
     queryKey: ["locations-in-city", id, activeCategory, search],
     queryFn: async () => {
       if (!cityData?.name) return { items: [] };
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
-        params: {
-          province: cityData.name,
-          category: activeCategory !== "all" ? activeCategory : undefined,
-          search: search || undefined,
-          limit: 20,
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/locations",
+        {
+          params: {
+            province: cityData.name,
+            category: activeCategory !== "all" ? activeCategory : undefined,
+            search: search || undefined,
+            limit: 20,
+          },
         },
-      });
+      );
       return res.data;
     },
     enabled: !!cityData?.name,
@@ -120,8 +126,10 @@ export default function CityDetailPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-64 space-y-6">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <h2 className="text-sm font-bold text-gray-800 mb-4">Danh mục</h2>
-              <div className="space-y-2">
+              <h2 className="text-sm font-bold text-gray-800 mb-4 hidden lg:block">
+                Danh mục
+              </h2>
+              <div className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-2 lg:gap-2 no-scrollbar">
                 {categories.map((item) => {
                   const Icon = item.icon;
                   const active = activeCategory === item.id;
@@ -129,10 +137,10 @@ export default function CityDetailPage() {
                     <button
                       key={item.id}
                       onClick={() => setActiveCategory(item.id)}
-                      className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+                      className={`flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-3 rounded-full lg:rounded-xl px-4 py-2 lg:px-3 lg:py-2 text-xs lg:text-sm font-semibold transition-colors whitespace-nowrap ${
                         active
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-600 hover:bg-gray-100"
+                          ? "bg-blue-600 text-white shadow-md lg:shadow-none"
+                          : "bg-white lg:bg-transparent border lg:border-none border-gray-100 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
                       <Icon />
@@ -144,7 +152,8 @@ export default function CityDetailPage() {
             </div>
 
             {/* Price Range Filter (Mock) */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+            {/* Price Range Filter (Mock) - Hidden on mobile to save space */}
+            <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
               <h3 className="text-sm font-bold text-gray-800">
                 Khoảng giá (VND)
               </h3>
@@ -189,23 +198,23 @@ export default function CityDetailPage() {
             </div>
 
             {isLocationsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
-                    className="h-64 bg-white rounded-2xl border border-gray-100 animate-pulse"
+                    className="h-48 md:h-64 bg-white rounded-2xl border border-gray-100 animate-pulse"
                   ></div>
                 ))}
               </div>
             ) : locations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                 {locations.map((place: any) => (
                   <Link
                     key={place._id}
                     href={`/dia-diem/${place._id}`}
                     className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow group"
                   >
-                    <div className="relative h-48 bg-gray-100">
+                    <div className="relative h-32 md:h-48 bg-gray-100">
                       {place.imageUrl ? (
                         <Image
                           src={place.imageUrl}
@@ -219,32 +228,32 @@ export default function CityDetailPage() {
                           No Image
                         </div>
                       )}
-                      <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 text-gray-700 flex items-center justify-center shadow-md hover:text-blue-600">
+                      <button className="absolute top-2 right-2 md:top-3 md:right-3 w-7 h-7 md:w-9 md:h-9 rounded-full bg-white/90 text-gray-700 flex items-center justify-center shadow-md hover:text-blue-600 text-xs md:text-sm">
                         <FaBookmark />
                       </button>
-                      <span className="absolute bottom-3 left-3 rounded-full bg-blue-600/90 text-white text-[10px] font-semibold px-2.5 py-1">
+                      <span className="absolute bottom-2 left-2 md:bottom-3 md:left-3 rounded-full bg-blue-600/90 text-white text-[9px] md:text-[10px] font-semibold px-2 py-0.5 md:px-2.5 md:py-1">
                         {place.category}
                       </span>
                     </div>
-                    <div className="p-4 flex-1 flex flex-col gap-2">
-                      <h3 className="text-base font-bold text-gray-900 line-clamp-1">
+                    <div className="p-3 md:p-4 flex-1 flex flex-col gap-1 md:gap-2">
+                      <h3 className="text-sm md:text-base font-bold text-gray-900 line-clamp-1">
                         {place.name}
                       </h3>
-                      <p className="text-xs text-gray-500 flex items-center gap-1 line-clamp-1">
+                      <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1 line-clamp-1">
                         <FaMapMarkerAlt className="text-gray-400" />
                         {place.province}
                       </p>
-                      <div className="flex items-center justify-between text-sm mt-1">
+                      <div className="flex items-center justify-between text-xs md:text-sm mt-1">
                         <span className="flex items-center gap-1 text-amber-500 font-semibold">
                           <FaStar />
                           4.5
-                          <span className="text-xs text-gray-400 font-normal">
+                          <span className="text-[10px] md:text-xs text-gray-400 font-normal">
                             (120)
                           </span>
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                      <div className="flex flex-wrap gap-2 mt-1 md:mt-2">
+                        <span className="text-[9px] md:text-[10px] uppercase tracking-wide font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600">
                           {place.status === "approved" ? "Verified" : "New"}
                         </span>
                       </div>

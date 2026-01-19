@@ -299,7 +299,7 @@ function SearchContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
           {/* Desktop Sidebar */}
           <aside
-            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 space-y-4 md:space-y-6 h-fit lg:sticky lg:top-24 ${
+            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 space-y-4 md:space-y-6 h-fit  lg:top-24 ${
               showMobileFilters ? "block" : "hidden lg:block"
             }`}
           >
