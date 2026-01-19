@@ -25,6 +25,16 @@ import { useDebounce } from "use-debounce";
 // Constants
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  username: string;
+  role: "admin" | "user";
+  status: "active" | "banned";
+  contributions: number;
+}
+
 export default function AdminUsersPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -78,6 +88,7 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-users-stats"] });
       toast.success("Đã cập nhật trạng thái");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Lỗi cập nhật");
     },
@@ -94,6 +105,7 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-users-stats"] });
       toast.success("Đã xóa người dùng");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
@@ -229,7 +241,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {users.map((user: any) => (
+                  {users.map((user: User) => (
                     <tr
                       key={user._id}
                       className="hover:bg-blue-50/30 transition-colors group"
@@ -279,7 +291,7 @@ export default function AdminUsersPage() {
 
             {/* Mobile/Tablet Card View */}
             <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
-              {users.map((user: any) => (
+              {users.map((user: User) => (
                 <div
                   key={user._id}
                   className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative hover:shadow-md transition-shadow"
@@ -355,8 +367,15 @@ export default function AdminUsersPage() {
 }
 
 // Sub-components for cleaner code
-function StatsCard({ icon, color, label, value }: any) {
-  const colors: any = {
+interface StatsCardProps {
+  icon: React.ReactNode;
+  color: "blue" | "green" | "red";
+  label: string;
+  value: number;
+}
+
+function StatsCard({ icon, color, label, value }: StatsCardProps) {
+  const colors: Record<string, string> = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
     red: "bg-red-50 text-red-600",
@@ -424,7 +443,17 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ActionButtons({ user, updateMutation, deleteMutation }: any) {
+function ActionButtons({
+  user,
+  updateMutation,
+  deleteMutation,
+}: {
+  user: User;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateMutation: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteMutation: any;
+}) {
   return (
     <div className="flex justify-end gap-1">
       <button

@@ -266,6 +266,7 @@ export default function AdminDashboardPage() {
           <>
             {/* Mobile Card View */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {stats.recentPendingLocations.map((loc: any) => (
                 <div
                   key={loc._id}
@@ -318,6 +319,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {stats.recentPendingLocations.map((loc: any) => (
                     <tr
                       key={loc._id}

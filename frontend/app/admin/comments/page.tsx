@@ -40,7 +40,7 @@ export default function AdminCommentsPage() {
             startDate: startDate || undefined,
             endDate: endDate || undefined,
           },
-        }
+        },
       );
 
       const items = res.data.items || [];
@@ -55,6 +55,7 @@ export default function AdminCommentsPage() {
           "Status",
           "Date",
         ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...items.map((item: any) => [
           item._id,
           item.userName || item.user?.name,
@@ -75,7 +76,7 @@ export default function AdminCommentsPage() {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `reviews_export_${new Date().toISOString().slice(0, 10)}.csv`
+        `reviews_export_${new Date().toISOString().slice(0, 10)}.csv`,
       );
       document.body.appendChild(link);
       link.click();
@@ -112,7 +113,7 @@ export default function AdminCommentsPage() {
             startDate: startDate || undefined,
             endDate: endDate || undefined,
           },
-        }
+        },
       );
       return res.data;
     },
@@ -125,7 +126,7 @@ export default function AdminCommentsPage() {
       const res = await axios.get(
         (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
           "/api/admin/reviews/stats",
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
       return res.data;
     },
@@ -137,7 +138,7 @@ export default function AdminCommentsPage() {
       return axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reviews/${id}`,
         { status },
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
@@ -145,6 +146,7 @@ export default function AdminCommentsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-reviews-stats"] });
       toast.success("Đã cập nhật trạng thái");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Lỗi cập nhật");
     },
@@ -156,7 +158,7 @@ export default function AdminCommentsPage() {
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reviews/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -164,6 +166,7 @@ export default function AdminCommentsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-reviews-stats"] });
       toast.success("Đã xóa đánh giá");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
@@ -336,6 +339,7 @@ export default function AdminCommentsPage() {
             Chưa có đánh giá nào
           </div>
         ) : (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           reviews.map((review: any) => {
             const displayName =
               review.user?.name || review.userName || "Ẩn danh";
@@ -450,6 +454,7 @@ export default function AdminCommentsPage() {
                 </td>
               </tr>
             ) : (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               reviews.map((review: any) => {
                 const displayName =
                   review.user?.name || review.userName || "Ẩn danh";

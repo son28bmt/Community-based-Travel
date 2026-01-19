@@ -49,6 +49,7 @@ export default function RegisterPage() {
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
         router.push("/login");
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setRegisterError(
         err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",

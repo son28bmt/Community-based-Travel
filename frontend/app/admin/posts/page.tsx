@@ -31,7 +31,7 @@ export default function AdminPostsPage() {
             status: statusFilter || undefined,
             category: categoryFilter || undefined,
           },
-        }
+        },
       );
       return res.data;
     },
@@ -47,7 +47,7 @@ export default function AdminPostsPage() {
           "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       return res.data;
     },
@@ -60,13 +60,14 @@ export default function AdminPostsPage() {
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       toast.success("Đã xóa bài viết");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
@@ -77,13 +78,14 @@ export default function AdminPostsPage() {
       return axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
         { status },
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       toast.success("Đã cập nhật trạng thái");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể cập nhật");
     },
@@ -166,11 +168,13 @@ export default function AdminPostsPage() {
             className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 outline-none focus:border-blue-500 hover:bg-gray-50 bg-white w-full md:w-auto"
           >
             <option value="">Tất cả danh mục</option>
-            {categoriesData?.items?.map((cat: any) => (
-              <option key={cat._id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
+            {categoriesData?.items?.map(
+              (cat: { _id: string; name: string }) => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ),
+            )}
           </select>
         </div>
 
@@ -199,6 +203,7 @@ export default function AdminPostsPage() {
             Chưa có bài viết nào.
           </div>
         ) : (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           posts.map((post: any) => (
             <div
               key={post._id}
@@ -294,6 +299,7 @@ export default function AdminPostsPage() {
                 </td>
               </tr>
             ) : (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               posts.map((post: any) => (
                 <tr
                   key={post._id}

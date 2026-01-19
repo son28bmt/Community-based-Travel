@@ -28,6 +28,21 @@ const iconMap: Record<string, React.ReactNode> = {
   coffee: <FaCoffee className="text-blue-500" />,
 };
 
+interface SubCategory {
+  _id: string;
+  name: string;
+}
+
+interface Category {
+  _id: string;
+  name: string;
+  icon: string;
+  description?: string;
+  parent?: string;
+  subCategories?: SubCategory[];
+  locationCount?: number;
+}
+
 export default function AdminCategoriesPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -42,7 +57,7 @@ export default function AdminCategoriesPage() {
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { search: search || undefined },
-        }
+        },
       );
       return res.data;
     },
@@ -55,13 +70,14 @@ export default function AdminCategoriesPage() {
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       toast.success("Đã xóa danh mục");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
@@ -128,7 +144,7 @@ export default function AdminCategoriesPage() {
             <div className="text-gray-400">Chưa có danh mục nào.</div>
           ) : (
             <div className="space-y-4">
-              {categories.map((cat: any) => (
+              {categories.map((cat: Category) => (
                 <div
                   key={cat._id}
                   className="border border-gray-100 rounded-xl overflow-hidden"
@@ -185,7 +201,7 @@ export default function AdminCategoriesPage() {
 
                   {(cat.subCategories || []).length > 0 && (
                     <div className="bg-gray-50 p-4 sm:pl-16 space-y-2 border-t border-gray-100">
-                      {(cat.subCategories || []).map((sub: any) => (
+                      {(cat.subCategories || []).map((sub: SubCategory) => (
                         <div
                           key={sub._id}
                           className="flex items-center gap-4 py-2 px-4 bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-all group"

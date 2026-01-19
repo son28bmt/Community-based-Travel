@@ -15,6 +15,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
+  const [loginError, setLoginError] = useState("");
   const {
     register,
     handleSubmit,
@@ -50,7 +51,7 @@ function LoginForm() {
         }
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setLoginError("Đã có lỗi xảy ra. Vui lòng thử lại.");
     }
   };

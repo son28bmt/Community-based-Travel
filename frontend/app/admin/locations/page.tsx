@@ -68,6 +68,22 @@ const RejectionModal = ({
   );
 };
 
+interface City {
+  _id: string;
+  name: string;
+}
+
+interface Location {
+  _id: string;
+  name: string;
+  province: string;
+  category: string;
+  status: "pending" | "approved" | "rejected" | "hidden";
+  imageUrl: string;
+  description?: string;
+  createdAt: string;
+}
+
 export default function AdminLocationsPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -79,7 +95,7 @@ export default function AdminLocationsPage() {
   // Rejection Modal State
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(
-    null
+    null,
   );
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -92,7 +108,7 @@ export default function AdminLocationsPage() {
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { limit: 100 },
-        }
+        },
       );
       return res.data;
     },
@@ -103,7 +119,11 @@ export default function AdminLocationsPage() {
     queryKey: ["admin-locations", page, search, filterCategory, filterProvince],
     queryFn: async () => {
       // Build query params
-      const params: any = { page, limit: 10, search };
+      const params: Record<string, string | number> = {
+        page,
+        limit: 10,
+        search,
+      };
       if (filterCategory) params.category = filterCategory;
       if (filterProvince) params.province = filterProvince;
 
@@ -113,7 +133,7 @@ export default function AdminLocationsPage() {
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params,
-        }
+        },
       );
       return res.data;
     },
@@ -127,13 +147,14 @@ export default function AdminLocationsPage() {
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-locations"] });
       toast.success("Đã xóa địa điểm");
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Không thể xóa");
     },
@@ -155,7 +176,7 @@ export default function AdminLocationsPage() {
         { status, rejectionReason },
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -165,6 +186,7 @@ export default function AdminLocationsPage() {
       setIsRejectModalOpen(false);
       setSelectedLocationId(null);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Cập nhật thất bại");
     },
@@ -207,7 +229,7 @@ export default function AdminLocationsPage() {
           "/api/admin/locations/stats",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       return res.data;
     },
@@ -282,7 +304,7 @@ export default function AdminLocationsPage() {
               className="px-4 py-2 rounded-full bg-gray-100 text-sm font-semibold text-gray-600 outline-none cursor-pointer border-none whitespace-nowrap"
             >
               <option value="">Tất cả tỉnh thành</option>
-              {citiesData?.items?.map((c: any) => (
+              {citiesData?.items?.map((c: City) => (
                 <option key={c._id} value={c.name}>
                   {c.name}
                 </option>
@@ -312,7 +334,7 @@ export default function AdminLocationsPage() {
           ) : isError ? (
             <div className="text-center p-4 text-red-500">Có lỗi xảy ra.</div>
           ) : locations.length > 0 ? (
-            locations.map((loc: any) => (
+            locations.map((loc: Location) => (
               <div
                 key={loc._id}
                 className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm"
@@ -329,11 +351,15 @@ export default function AdminLocationsPage() {
                           unoptimized
                         />
                       ) : (
-                        <img
-                          src="https://placehold.co/80x80"
-                          alt={loc.name}
-                          className="h-full w-full object-cover"
-                        />
+                        <div className="relative h-full w-full">
+                          <Image
+                            src="https://placehold.co/80x80"
+                            alt={loc.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
                       )}
                     </div>
                     <div>
@@ -445,7 +471,7 @@ export default function AdminLocationsPage() {
                   </td>
                 </tr>
               ) : (
-                locations.map((loc: any) => (
+                locations.map((loc: Location) => (
                   <tr key={loc._id}>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
@@ -459,11 +485,15 @@ export default function AdminLocationsPage() {
                               unoptimized
                             />
                           ) : (
-                            <img
-                              src="https://placehold.co/80x80"
-                              alt={loc.name}
-                              className="h-full w-full object-cover"
-                            />
+                            <div className="relative h-full w-full">
+                              <Image
+                                src="https://placehold.co/80x80"
+                                alt={loc.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            </div>
                           )}
                         </div>
                         <div>
