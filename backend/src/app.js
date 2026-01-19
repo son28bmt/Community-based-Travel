@@ -2,9 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const xssClean = require("xss-clean");
-
-app.use(hpp());
-app.use(xssClean());
+const hpp = require("hpp"); // Added missing import
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const routes = require("./routes");
@@ -25,8 +23,9 @@ app.use(
     credentials: true,
   }),
 );
-// app.use(hpp());
-// app.use(xssClean());
+
+app.use(hpp()); // Correct placement
+app.use(xssClean()); // Correct placement
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
