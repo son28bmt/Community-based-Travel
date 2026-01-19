@@ -46,7 +46,7 @@ const RichTextEditor = ({
   };
 
   const insertImage = () => {
-    const url = window.prompt("D?n link ?nh");
+    const url = window.prompt("Dán link ảnh");
     if (url) {
       exec("insertImage", url);
     }

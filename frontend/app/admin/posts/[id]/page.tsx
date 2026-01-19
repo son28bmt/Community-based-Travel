@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,13 +8,6 @@ import {
   FaArrowLeft,
   FaCloudUploadAlt,
   FaSpinner,
-  FaBold,
-  FaItalic,
-  FaUnderline,
-  FaHeading,
-  FaAlignLeft,
-  FaAlignCenter,
-  FaAlignRight,
   FaImage,
 } from "react-icons/fa";
 import axios from "axios";
@@ -22,120 +15,11 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const RichTextEditor = ({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-}) => {
-  const editorRef = useRef<HTMLDivElement>(null);
+import dynamic from "next/dynamic";
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    if (editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value || "<p></p>";
-    }
-  }, [value]);
-
-  const exec = (command: string, cmdValue?: string) => {
-    document.execCommand(command, false, cmdValue);
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertImage = () => {
-    const url = window.prompt("Nhập đường dẫn ảnh (URL):");
-    if (url) {
-      exec("insertImage", url);
-    }
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
-        <button
-          type="button"
-          onClick={() => exec("bold")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="In đậm"
-        >
-          <FaBold />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("italic")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="In nghiêng"
-        >
-          <FaItalic />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("underline")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Gạch chân"
-        >
-          <FaUnderline />
-        </button>
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-        <button
-          type="button"
-          onClick={() => exec("formatBlock", "h2")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Tiêu đề"
-        >
-          <FaHeading />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyLeft")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Căn trái"
-        >
-          <FaAlignLeft />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyCenter")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Căn giữa"
-        >
-          <FaAlignCenter />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyRight")}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Căn phải"
-        >
-          <FaAlignRight />
-        </button>
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-        <button
-          type="button"
-          onClick={insertImage}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 text-gray-600"
-          title="Chèn ảnh"
-        >
-          <FaImage />
-        </button>
-      </div>
-      <div
-        ref={editorRef}
-        contentEditable
-        className="min-h-[300px] px-4 py-3 text-sm text-gray-700 outline-none prosemirror-editor"
-        onInput={() => {
-          if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-          }
-        }}
-        suppressContentEditableWarning
-      />
-    </div>
-  );
-};
+const TipTapEditor = dynamic(() => import("@/components/TipTapEditor"), {
+  ssr: false,
+});
 
 export default function AdminPostEditPage({
   params,
@@ -164,7 +48,7 @@ export default function AdminPostEditPage({
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       return res.data.post;
     },
@@ -176,10 +60,11 @@ export default function AdminPostEditPage({
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       return res.data;
     },
@@ -200,9 +85,13 @@ export default function AdminPostEditPage({
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return axios.patch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`, data, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
+        data,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
@@ -227,14 +116,15 @@ export default function AdminPostEditPage({
       uploadData.append("file", file);
 
       const res = await axios.post(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/uploads",
         uploadData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
-        }
+        },
       );
 
       setFormData((prev) => ({ ...prev, imageUrl: res.data.url }));
@@ -328,11 +218,12 @@ export default function AdminPostEditPage({
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Nội dung chi tiết <span className="text-red-500">*</span>
               </label>
-              <RichTextEditor
+              <TipTapEditor
                 value={formData.content}
                 onChange={(val) =>
                   setFormData((prev) => ({ ...prev, content: val }))
                 }
+                placeholder="Viết nội dung bài viết..."
               />
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   FaMapMarkerAlt,
@@ -32,6 +32,9 @@ export default function UserProfile() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
 
   const [activeTab, setActiveTab] = useState("post");
   const [contribPage, setContribPage] = useState(1);
@@ -39,6 +42,12 @@ export default function UserProfile() {
   const [savedPage, setSavedPage] = useState(1);
   const [postPage, setPostPage] = useState(1);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    username: "",
+    bio: "",
+  });
 
   // Fetch User Data
   const { data, isLoading, error } = useQuery({
@@ -69,6 +78,16 @@ export default function UserProfile() {
         session.user.id === user.id ||
         (session.user as any).username === user.username
       : false;
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || "",
+        username: user.username || "",
+        bio: user.bio || "",
+      });
+    }
+  }, [user]);
 
   // Fetch data for tabs
   const { data: contributionsData } = useQuery({
@@ -162,6 +181,63 @@ export default function UserProfile() {
       toast.error("Lỗi khi cập nhật trạng thái theo dõi");
     },
   });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: {
+      name?: string;
+      username?: string;
+      bio?: string;
+      avatar?: string;
+      coverImage?: string;
+    }) => {
+      const token = (session as any)?.user?.accessToken;
+      if (!token) throw new Error("Bạn cần đăng nhập");
+      const res = await axios.patch(`${apiBase}/api/users/me`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.user || res.data;
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(
+        ["user-profile", id, session?.user?.accessToken],
+        (old: any) => {
+          if (!old) return { user: updatedUser };
+          return { ...old, user: { ...(old.user || old), ...updatedUser } };
+        },
+      );
+      toast.success("Đã cập nhật hồ sơ");
+      setIsEditOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Không cập nhật được");
+    },
+  });
+
+  const handleAvatarUpload = async (
+    file: File,
+    field: "avatar" | "coverImage",
+  ) => {
+    const token = (session as any)?.user?.accessToken;
+    if (!token) {
+      toast.error("Bạn cần đăng nhập");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const uploadRes = await axios.post(`${apiBase}/api/uploads`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const url = uploadRes.data?.url;
+      if (!url) throw new Error("Không nhận được URL ảnh");
+      updateProfileMutation.mutate({ [field]: url });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Tải ảnh thất bại");
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
+  };
 
   if (isLoading) {
     return (

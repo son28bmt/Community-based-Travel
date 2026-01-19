@@ -15,9 +15,10 @@ import {
 } from "react-icons/fa";
 
 import dynamic from "next/dynamic";
-import "react-quill-new/dist/quill.snow.css";
 
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+const TipTapEditor = dynamic(() => import("@/components/TipTapEditor"), {
+  ssr: false,
+});
 
 type City = { _id: string; name: string };
 type Category = { _id: string; name: string };
@@ -45,9 +46,13 @@ export default function ContributionPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["contribution-cities"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/cities", {
-        params: { limit: 200, page: 1 },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/cities",
+        {
+          params: { limit: 200, page: 1 },
+        },
+      );
       return res.data;
     },
   });
@@ -55,23 +60,30 @@ export default function ContributionPage() {
   const { data: categoriesData } = useQuery({
     queryKey: ["contribution-categories"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories");
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/categories",
+      );
       return res.data;
     },
   });
 
   // Fetch sub-categories based on selected main category
   const selectedCategory = categoriesData?.items?.find(
-    (c: Category) => c.name === form.category
+    (c: Category) => c.name === form.category,
   );
 
   const { data: subCategoriesData } = useQuery({
     queryKey: ["contribution-subcategories", selectedCategory?._id],
     queryFn: async () => {
       if (!selectedCategory?._id) return { items: [] };
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories", {
-        params: { parent: selectedCategory._id },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/categories",
+        {
+          params: { parent: selectedCategory._id },
+        },
+      );
       return res.data;
     },
     enabled: !!selectedCategory?._id,
@@ -91,13 +103,14 @@ export default function ContributionPage() {
         const formData = new FormData();
         formData.append("file", file);
         const res = await axios.post(
-          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+            "/api/uploads",
           formData,
           {
             headers: {
               Authorization: `Bearer ${session.user.accessToken}`,
             },
-          }
+          },
         );
         uploaded.push(res.data.url);
       }
@@ -117,7 +130,8 @@ export default function ContributionPage() {
 
     try {
       await axios.post(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/contributions/locations",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/contributions/locations",
         {
           ...form,
           images,
@@ -128,10 +142,10 @@ export default function ContributionPage() {
           headers: {
             Authorization: `Bearer ${session.user.accessToken}`,
           },
-        }
+        },
       );
       toast.success(
-        status === "hidden" ? "Đã lưu bản nháp" : "Đã gửi đóng góp thành công"
+        status === "hidden" ? "Đã lưu bản nháp" : "Đã gửi đóng góp thành công",
       );
       router.push("/kham-pha");
     } catch (err: any) {
@@ -265,12 +279,10 @@ export default function ContributionPage() {
                 Mô tả chi tiết *
               </label>
               <div className="mt-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <ReactQuill
-                  theme="snow"
+                <TipTapEditor
                   value={form.description}
                   onChange={(value) => setForm({ ...form, description: value })}
                   placeholder="Chia sẻ các mẹo hữu ích, giờ mở cửa, giá vé..."
-                  className="h-64 mb-12"
                 />
               </div>
               <p className="text-xs text-gray-400 mt-2">
@@ -314,7 +326,7 @@ export default function ContributionPage() {
                       type="button"
                       onClick={() =>
                         setImages((prev) =>
-                          prev.filter((_, index) => index !== idx)
+                          prev.filter((_, index) => index !== idx),
                         )
                       }
                       className="absolute top-1 right-1 bg-white/80 text-xs rounded-full w-5 h-5 flex items-center justify-center"
