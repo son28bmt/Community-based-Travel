@@ -27,8 +27,8 @@ app.use(
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(hpp());
-app.use(xssClean());
+// app.use(hpp());
+// app.use(xssClean());
 
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 app.use(
