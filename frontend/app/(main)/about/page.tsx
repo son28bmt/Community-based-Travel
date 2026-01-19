@@ -135,7 +135,7 @@ export default function AboutPage() {
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-200 rounded-full blur-3xl opacity-30"></div>
               <div className="relative rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
                 {/* Placeholder Image */}
-                <div className="aspect-[4/3] bg-gray-300 w-full bg-[url('https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center"></div>
+                <div className="aspect-[4/3] bg-gray-300 w-full bg-[url('https://pub-58c1a2fe07b6492fbadd2e958ca80bb9.r2.dev/locations/daihoitoanquoc.jpg')] bg-cover bg-center"></div>
               </div>
             </div>
             <div className="lg:w-1/2">
@@ -194,3 +194,4 @@ export default function AboutPage() {
     </div>
   );
 }
+
