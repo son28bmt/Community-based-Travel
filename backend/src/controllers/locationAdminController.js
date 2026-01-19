@@ -54,7 +54,7 @@ const getLocation = async (req, res, next) => {
   try {
     const location = await Location.findById(req.params.id).populate(
       "createdBy",
-      "name email"
+      "name email",
     );
     if (!location) {
       return res.status(404).json({ message: "Location not found" });
@@ -155,8 +155,11 @@ const deleteLocation = async (req, res, next) => {
       return res.status(404).json({ message: "Location not found" });
     }
 
-    await location.deleteOne();
-    return res.json({ message: "Location deleted" });
+    // Soft delete
+    location.deletedAt = new Date();
+    location.status = "hidden";
+    await location.save();
+    return res.json({ message: "Location deleted (soft)" });
   } catch (err) {
     return next(err);
   }

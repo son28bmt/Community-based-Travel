@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useDebounce } from "use-debounce";
 
 // Constants
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -29,19 +30,20 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500); // 500ms delay
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
   // Queries
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin-users", page, search, roleFilter, statusFilter],
+    queryKey: ["admin-users", page, debouncedSearch, roleFilter, statusFilter],
     queryFn: async () => {
       const res = await axios.get(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: {
           page,
           limit: 10,
-          search: search || undefined,
+          search: debouncedSearch || undefined, // Use debounced value
           role: roleFilter || undefined,
           status: statusFilter || undefined,
         },
@@ -68,7 +70,7 @@ export default function AdminUsersPage() {
       return axios.patch(
         `${API_URL}/api/admin/users/${id}`,
         { status },
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {

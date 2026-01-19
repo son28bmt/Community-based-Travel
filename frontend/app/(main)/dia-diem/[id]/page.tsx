@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +28,25 @@ export default function LocationDetailPage() {
   const { data: session } = useSession();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const queryClient = useQueryClient();
+
+  const followMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/users/${userId}/follow`,
+        {},
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
+      );
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Đã cập nhật trạng thái theo dõi");
+      queryClient.invalidateQueries({ queryKey: ["location-detail", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Có lỗi xảy ra");
+    },
+  });
 
   // Fetch Location Detail
   const {
@@ -37,7 +56,9 @@ export default function LocationDetailPage() {
   } = useQuery({
     queryKey: ["location-detail", id],
     queryFn: async () => {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/locations/${id}`);
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/locations/${id}`,
+      );
       return res.data;
     },
     enabled: !!id,
@@ -47,7 +68,9 @@ export default function LocationDetailPage() {
   const { data: reviewsData } = useQuery({
     queryKey: ["location-reviews", id],
     queryFn: async () => {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/reviews/${id}`);
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/reviews/${id}`,
+      );
       return res.data;
     },
     enabled: !!id,
@@ -57,12 +80,16 @@ export default function LocationDetailPage() {
   const { data: nearbyLocationsData } = useQuery({
     queryKey: ["nearby-locations", location?.province],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
-        params: {
-          province: location.province,
-          limit: 5, // Fetch 5 to ensure we have enough after filtering current one
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/locations",
+        {
+          params: {
+            province: location.province,
+            limit: 5, // Fetch 5 to ensure we have enough after filtering current one
+          },
         },
-      });
+      );
       return res.data;
     },
     enabled: !!location?.province,
@@ -353,7 +380,7 @@ export default function LocationDetailPage() {
                             <div className="flex items-center gap-2 text-xs text-gray-400">
                               <span>
                                 {new Date(review.createdAt).toLocaleDateString(
-                                  "vi-VN"
+                                  "vi-VN",
                                 )}
                               </span>
                             </div>
@@ -451,22 +478,43 @@ export default function LocationDetailPage() {
             {/* Contributor Card */}
             {location.createdBy && (
               <div className="bg-white rounded-3xl p-6 border border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold border border-green-200 uppercase">
+                <Link
+                  href={`/thanh-vien/${location.createdBy._id}`}
+                  className="flex items-center gap-3 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold border border-green-200 uppercase group-hover:scale-110 transition-transform">
                     {location.createdBy.name?.substring(0, 2) || "AD"}
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
                       Người đóng góp
                     </p>
-                    <h4 className="font-bold text-gray-900 text-sm">
+                    <h4 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
                       {location.createdBy.name || "Admin"}
                     </h4>
                     <p className="text-xs text-gray-400">Expert Guide</p>
                   </div>
-                </div>
-                <button className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors">
-                  Theo dõi
+                </Link>
+                <button
+                  onClick={() => {
+                    if (!session) {
+                      toast.error("Vui lòng đăng nhập để theo dõi");
+                      return;
+                    }
+                    if (session.user?.id === location.createdBy._id) {
+                      toast.error("Bạn không thể tự theo dõi chính mình");
+                      return;
+                    }
+                    followMutation.mutate(location.createdBy._id);
+                  }}
+                  disabled={followMutation.isPending}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
+                    location.createdBy.isFollowed // Assuming backend returns this, otherwise simpler handle
+                      ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                  }`}
+                >
+                  {followMutation.isPending ? "Đang xử lý..." : "Theo dõi"}
                 </button>
               </div>
             )}

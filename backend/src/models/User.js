@@ -36,9 +36,19 @@ const userSchema = new mongoose.Schema(
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     role: { type: String, enum: ["user", "admin"], default: "user" },
     status: { type: String, enum: ["active", "banned"], default: "active" },
+    deletedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+// Soft delete middleware
+userSchema.pre(/^find/, function (next) {
+  if (this.options?.withDeleted) {
+    return next();
+  }
+  this.find({ deletedAt: null });
+  next();
+});
 
 userSchema.pre("save", async function hashPassword() {
   if (!this.isModified("password")) {

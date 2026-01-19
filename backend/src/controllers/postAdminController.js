@@ -46,7 +46,7 @@ const getPost = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id).populate(
       "createdBy",
-      "name email"
+      "name email",
     );
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -102,8 +102,11 @@ const deletePost = async (req, res, next) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    await post.deleteOne();
-    return res.json({ message: "Post deleted" });
+    // Soft delete
+    post.deletedAt = new Date();
+    post.status = "hidden";
+    await post.save();
+    return res.json({ message: "Post deleted (soft)" });
   } catch (err) {
     return next(err);
   }

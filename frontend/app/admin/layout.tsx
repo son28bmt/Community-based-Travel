@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 // Constants
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -95,7 +95,7 @@ const AdminSidebar = ({
                       "flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors",
                       pathname === child.href
                         ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     )}
                   >
                     {child.icon}
@@ -113,7 +113,7 @@ const AdminSidebar = ({
                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                 pathname === item.href
                   ? "bg-blue-50 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
               )}
             >
               {item.icon}
@@ -124,7 +124,7 @@ const AdminSidebar = ({
                 </span>
               )}
             </Link>
-          )
+          ),
         )}
         <Link
           href="/admin/notifications"
@@ -133,7 +133,7 @@ const AdminSidebar = ({
             "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
             pathname === "/admin/notifications"
               ? "bg-blue-50 text-blue-600"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
           )}
         >
           <FaBell />
@@ -154,7 +154,10 @@ const AdminSidebar = ({
         >
           <FaCog /> Cài đặt
         </Link>
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 text-left">
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 text-left"
+        >
           <FaSignOutAlt /> Đăng xuất
         </button>
       </div>
@@ -197,7 +200,7 @@ export default function AdminLayout({
   ];
 
   const flatMenuItems = menuItems.flatMap((item) =>
-    "children" in item ? item.children : [item]
+    "children" in item ? item.children : [item],
   );
 
   const pageTitle =
@@ -227,7 +230,7 @@ export default function AdminLayout({
       return axios.patch(
         `${API_URL}/api/admin/notifications/${id}/read`,
         {},
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
@@ -240,7 +243,7 @@ export default function AdminLayout({
       return axios.patch(
         `${API_URL}/api/admin/notifications/read-all`,
         {},
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
@@ -290,7 +293,7 @@ export default function AdminLayout({
       <aside
         className={clsx(
           "lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 transform",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <AdminSidebar
@@ -417,7 +420,7 @@ export default function AdminLayout({
                                   </p>
                                   <p className="text-[10px] text-gray-400 mt-2">
                                     {new Date(
-                                      notif.createdAt
+                                      notif.createdAt,
                                     ).toLocaleDateString("vi-VN", {
                                       hour: "2-digit",
                                       minute: "2-digit",

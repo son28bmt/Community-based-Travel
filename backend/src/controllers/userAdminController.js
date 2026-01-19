@@ -138,8 +138,11 @@ const deleteUser = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await user.deleteOne();
-    return res.json({ message: "User deleted" });
+    // Soft delete
+    user.deletedAt = new Date();
+    user.status = "banned"; // Optionally ban user too/or just mark deleted
+    await user.save();
+    return res.json({ message: "User deleted (soft)" });
   } catch (err) {
     return next(err);
   }

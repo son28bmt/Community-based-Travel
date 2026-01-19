@@ -4,6 +4,9 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { FaGoogle, FaFacebookF, FaEnvelope, FaLock } from "react-icons/fa";
 import { signIn, getSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginSchema, type Logininput } from "@/schemas/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 
 // Component that uses useSearchParams
@@ -12,26 +15,31 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<Logininput>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      remember: false,
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async (data: Logininput) => {
     setLoginError("");
 
     try {
       const res = await signIn("credentials", {
         redirect: false,
-        email,
-        password,
+        email: data.email,
+        password: data.password,
       });
 
       if (res?.error) {
         setLoginError("Email hoặc mật khẩu không chính xác");
-        setLoading(false);
       } else {
         // Fetch session to check role
         const session = await getSession();
@@ -44,7 +52,6 @@ function LoginForm() {
       }
     } catch (err) {
       setLoginError("Đã có lỗi xảy ra. Vui lòng thử lại.");
-      setLoading(false);
     }
   };
 
@@ -77,7 +84,7 @@ function LoginForm() {
         </div>
       )}
 
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-4">
           <div>
             <label
@@ -89,33 +96,49 @@ function LoginForm() {
             <div className="mt-1 relative rounded-md shadow-sm">
               <input
                 id="email-address"
-                name="email"
                 type="text"
                 autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                {...register("email")}
+                className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                  errors.email ? "border-red-300" : "border-gray-300"
+                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 placeholder="Địa chỉ Email hoặc Tên đăng nhập"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaEnvelope className="text-gray-400 text-lg" />
               </div>
             </div>
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div className="relative">
-            <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Mật khẩu"
-            />
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Mật khẩu
+            </label>
+            <div className="relative">
+              <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                {...register("password")}
+                className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                  errors.password ? "border-red-300" : "border-gray-300"
+                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                placeholder="Mật khẩu"
+              />
+            </div>
+            {errors.password && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.password.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -123,8 +146,8 @@ function LoginForm() {
           <div className="flex items-center">
             <input
               id="remember-me"
-              name="remember-me"
               type="checkbox"
+              {...register("remember")}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label
@@ -148,10 +171,10 @@ function LoginForm() {
         <div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
-            {loading ? "Đang xử lý..." : "Đăng nhập"}
+            {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
           </button>
         </div>
       </form>

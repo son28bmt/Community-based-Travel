@@ -11,49 +11,48 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RegisterSchema, type RegisterInput } from "@/schemas/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+  const [registerError, setRegisterError] = useState("");
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Mật khẩu nhập lại không khớp");
-      setLoading(false);
-      return;
-    }
+  const onSubmit = async (data: RegisterInput) => {
+    setRegisterError("");
 
     try {
-      await axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/auth/register", {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+      const res = await axios.post(`${API_URL}/api/auth/register`, {
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
 
-      // Redirect to login on success
-      router.push("/login?registered=true");
+      if (res.data) {
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+        router.push("/login");
+      }
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "Đăng ký thất bại. Email có thể đã tồn tại."
+      setRegisterError(
+        err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -75,71 +74,133 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {error && (
+        {registerError && (
           <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
-            {error}
+            {registerError}
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            <div className="relative">
-              <FaUser className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Họ và tên"
-              />
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Họ và tên
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  {...register("name")}
+                  className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                    errors.name ? "border-red-300" : "border-gray-300"
+                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  placeholder="Họ và tên"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400 text-lg" />
+                </div>
+              </div>
+              {errors.name && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  id="email"
+                  type="text"
+                  autoComplete="email"
+                  {...register("email")}
+                  className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                    errors.email ? "border-red-300" : "border-gray-300"
+                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  placeholder="Địa chỉ Email"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaEnvelope className="text-gray-400 text-lg" />
+                </div>
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div className="relative">
-              <FaEnvelope className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Địa chỉ Email"
-              />
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Mật khẩu
+              </label>
+              <div className="relative">
+                <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  {...register("password")}
+                  className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                    errors.password ? "border-red-300" : "border-gray-300"
+                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  placeholder="Mật khẩu"
+                />
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <div className="relative">
-              <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Mật khẩu"
-              />
-            </div>
-            <div className="relative">
-              <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Nhập lại mật khẩu"
-              />
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Xác nhận mật khẩu
+              </label>
+              <div className="relative">
+                <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  {...register("confirmPassword")}
+                  className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
+                    errors.confirmPassword
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  placeholder="Nhập lại mật khẩu"
+                />
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
           </div>
 
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
             >
-              {loading ? "Đang xử lý..." : "Đăng ký tài khoản"}
+              {isSubmitting ? "Đang xử lý..." : "Đăng ký tài khoản"}
             </button>
           </div>
         </form>

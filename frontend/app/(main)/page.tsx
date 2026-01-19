@@ -26,7 +26,34 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <FaMap aria-hidden="true" />,
   bed: <FaHotel aria-hidden="true" />,
   coffee: <FaUtensils aria-hidden="true" />,
+  bed: <FaHotel aria-hidden="true" />,
+  coffee: <FaUtensils aria-hidden="true" />,
 };
+
+interface Category {
+  _id: string;
+  name: string;
+  icon: string;
+}
+
+interface City {
+  _id: string;
+  name: string;
+  imageUrl: string;
+  region: string;
+  description: string;
+}
+
+interface Location {
+  _id: string;
+  name: string;
+  imageUrl: string;
+  category: string;
+  ratingAvg?: number;
+  province: string;
+  description: string;
+  updatedAt: string;
+}
 
 const resolveIcon = (iconStr: string) => {
   return iconMap[iconStr] || <FaMapMarkerAlt aria-hidden="true" />;
@@ -145,12 +172,12 @@ export default function Home() {
             {/* Search Box */}
             <form
               onSubmit={handleSearch}
-              className="bg-white/10 backdrop-blur-xl p-2 rounded-[2rem] shadow-2xl max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-2 border border-white/20 transition-all focus-within:bg-white/20 focus-within:border-white/40"
+              className="bg-white p-1.5 rounded-full shadow-2xl max-w-xl mx-auto flex items-center gap-1 border border-white/20 transition-all focus-within:ring-4 focus-within:ring-blue-500/20"
               role="search"
             >
-              <div className="flex-1 flex items-center px-6 w-full h-14 bg-white rounded-full focus-within:ring-2 focus-within:ring-blue-400/50 shadow-inner group">
+              <div className="flex-1 flex items-center px-4 md:px-6 h-11 md:h-12 bg-transparent">
                 <FaSearch
-                  className="text-gray-400 mr-3 text-lg group-focus-within:text-blue-500 transition-colors"
+                  className="text-gray-400 mr-3 text-base md:text-lg shrink-0"
                   aria-hidden="true"
                 />
                 <label htmlFor="hero-search" className="sr-only">
@@ -161,16 +188,17 @@ export default function Home() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Bạn muốn đi đâu hôm nay?"
-                  className="bg-transparent outline-none w-full text-gray-800 placeholder-gray-400 text-base font-medium"
+                  placeholder="Bạn muốn đi đâu?"
+                  className="bg-transparent outline-none w-full text-gray-800 placeholder-gray-400 text-sm md:text-base font-medium truncate"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-8 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-blue-500/30 active:scale-95 flex items-center justify-center gap-2 min-w-[140px]"
+                className="h-11 md:h-12 px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center shrink-0"
                 aria-label="Tìm kiếm"
               >
-                Tìm kiếm
+                <span className="hidden md:inline">Tìm kiếm</span>
+                <FaSearch className="md:hidden text-sm" />
               </button>
             </form>
 
@@ -207,7 +235,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-              {categories.map((cat: any, idx: number) => (
+              {categories.map((cat: Category, idx: number) => (
                 <Link
                   href={`/tim-kiem?category=${encodeURIComponent(cat.name)}`}
                   key={cat._id || idx}
@@ -238,8 +266,8 @@ export default function Home() {
         aria-labelledby="cities-heading"
       >
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
-            <div>
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 gap-4">
+            <div className="text-center md:text-left">
               <span className="text-blue-600 font-bold uppercase tracking-wider text-xs md:text-sm mb-2 block">
                 Điểm đến hàng đầu
               </span>
@@ -258,12 +286,12 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
             {isCitiesLoading ? (
               [...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-[3/4] bg-gray-100 rounded-3xl animate-pulse"
+                  className="aspect-[3/4] bg-gray-100 rounded-2xl md:rounded-3xl animate-pulse"
                   role="status"
                   aria-label="Loading city"
                 />
@@ -273,11 +301,11 @@ export default function Home() {
                 Không thể tải dữ liệu thành phố.
               </div>
             ) : (
-              featuredCities.map((city: any) => (
+              featuredCities.map((city: City) => (
                 <Link
                   href={`/thanh-pho/${city._id}`}
                   key={city._id}
-                  className="group block h-full relative overflow-hidden rounded-3xl focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  className="group block h-full relative overflow-hidden rounded-2xl md:rounded-3xl focus:outline-none focus:ring-4 focus:ring-blue-300"
                   aria-label={`Khám phá ${city.name}`}
                 >
                   <div className="aspect-[3/4] relative w-full transition-transform duration-700 group-hover:scale-105">
@@ -288,19 +316,21 @@ export default function Home() {
                       } // Fallback image
                       alt={city.name}
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover"
                       unoptimized={!city.imageUrl?.startsWith("/")} // Only optimize local images if any
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
                   </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-2">
+                  <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 text-white transform translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-transform duration-300">
+                    <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-blue-300 mb-1 md:mb-2 line-clamp-1">
                       {city.region}
                     </p>
-                    <h3 className="text-2xl font-bold mb-2">{city.name}</h3>
-                    <p className="text-sm text-gray-300 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                    <h3 className="text-sm md:text-2xl font-bold mb-1 md:mb-2 line-clamp-1 md:line-clamp-2">
+                      {city.name}
+                    </h3>
+                    <p className="hidden md:block text-sm text-gray-300 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
                       {stripHtml(city.description) ||
                         "Khám phá địa điểm du lịch..."}
                     </p>
@@ -318,27 +348,27 @@ export default function Home() {
         aria-labelledby="locations-heading"
       >
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
             <span className="text-blue-600 font-bold uppercase tracking-wider text-xs md:text-sm mb-3 block">
               Gợi ý cho bạn
             </span>
             <h2
               id="locations-heading"
-              className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6"
+              className="text-2xl md:text-5xl font-extrabold text-gray-900 mb-4 md:mb-6"
             >
               Địa điểm yêu thích
             </h2>
-            <p className="text-gray-500 text-lg">
+            <p className="text-gray-500 text-sm md:text-lg">
               Tuyển tập những địa điểm được cộng đồng đánh giá cao nhất.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
             {isLocationsLoading ? (
               [...Array(8)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-80 bg-white rounded-3xl animate-pulse"
+                  className="h-48 md:h-80 bg-white rounded-2xl md:rounded-3xl animate-pulse"
                   role="status"
                   aria-label="Loading location"
                 />
@@ -348,14 +378,14 @@ export default function Home() {
                 Lỗi kết nối máy chủ.
               </div>
             ) : (
-              featuredLocations.map((loc: any) => (
+              featuredLocations.map((loc: Location) => (
                 <Link
                   href={`/dia-diem/${loc._id}`}
                   key={loc._id}
                   className="group flex flex-col h-full focus:outline-none"
                 >
-                  <article className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 h-full flex flex-col group-focus-within:ring-2 ring-blue-500">
-                    <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+                  <article className="bg-white rounded-2xl md:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 h-full flex flex-col group-focus-within:ring-2 ring-blue-500">
+                    <div className="relative h-32 md:h-56 w-full overflow-hidden bg-gray-100">
                       <Image
                         src={
                           loc.imageUrl ||
@@ -363,43 +393,57 @@ export default function Home() {
                         }
                         alt={loc.name}
                         fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                         unoptimized={!loc.imageUrl?.startsWith("/")}
                       />
-                      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow text-gray-800 flex items-center gap-1">
+                      <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/95 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold shadow text-gray-800 flex items-center gap-1">
                         <FaStar className="text-amber-400" aria-hidden="true" />
                         {loc.ratingAvg ? loc.ratingAvg.toFixed(1) : "N/A"}
                       </div>
-                      <div className="absolute bottom-4 left-4 bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white uppercase shadow">
+                      <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 bg-blue-600/90 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold text-white uppercase shadow">
                         {loc.category}
                       </div>
                     </div>
 
-                    <div className="p-6 flex flex-col flex-1">
+                    <div className="p-3 md:p-6 flex flex-col flex-1">
                       <div className="flex-1">
-                        <h3 className="font-bold text-xl text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-sm md:text-xl text-gray-900 mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-blue-600 transition-colors">
                           {loc.name}
                         </h3>
-                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+                        <div className="flex items-center gap-1 md:gap-2 text-gray-500 text-xs md:text-sm mb-2 md:mb-3">
                           <FaMapMarkerAlt
                             className="text-blue-500 shrink-0"
                             aria-hidden="true"
                           />
                           <span className="line-clamp-1">{loc.province}</span>
                         </div>
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                        <p className="hidden md:block text-sm text-gray-500 line-clamp-2 mb-4">
                           {stripHtml(loc.description) ||
                             "Chưa có mô tả chi tiết."}
                         </p>
                       </div>
 
-                      <div className="border-t border-gray-50 pt-4 flex items-center justify-between text-xs text-gray-400 font-medium mt-auto">
-                        <time dateTime={loc.updatedAt}>
-                          {loc.updatedAt ? new Date(loc.updatedAt).toLocaleDateString("vi-VN") : "Mới cập nhật"}
+                      <div className="md:border-t border-gray-50 md:pt-4 flex items-center justify-between text-[10px] md:text-xs text-gray-400 font-medium mt-auto">
+                        <time
+                          dateTime={loc.updatedAt}
+                          className="hidden md:inline"
+                        >
+                          {loc.updatedAt
+                            ? new Date(loc.updatedAt).toLocaleDateString(
+                                "vi-VN",
+                              )
+                            : "Mới cập nhật"}
                         </time>
-                        <span className="text-blue-600 group-hover:underline">
+                        <time dateTime={loc.updatedAt} className="md:hidden">
+                          {loc.updatedAt
+                            ? new Date(loc.updatedAt).toLocaleDateString(
+                                "vi-VN",
+                              )
+                            : "Mới"}
+                        </time>
+                        <span className="text-blue-600 group-hover:underline hidden md:inline">
                           Chi tiết &rarr;
                         </span>
                       </div>

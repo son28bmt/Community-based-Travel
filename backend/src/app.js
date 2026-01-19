@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const hpp = require("hpp");
+const xssClean = require("xss-clean");
+
+app.use(hpp());
+app.use(xssClean());
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const routes = require("./routes");
@@ -20,7 +23,7 @@ app.use(
   cors({
     origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
     credentials: true,
-  })
+  }),
 );
 // app.use(hpp());
 // app.use(xssClean());
@@ -31,7 +34,7 @@ app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5000,
-  })
+  }),
 );
 
 app.use("/api", routes);

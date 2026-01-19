@@ -1,0 +1,43 @@
+Authentication & Authorization
+Ngăn quay lại trang login khi đã đăng nhập - đúng như bạn nói, nếu user đã login rồi mà vào /login thì redirect về dashboard/home.
+Bảo vệ các trang yêu cầu đăng nhập - middleware kiểm tra authentication trước khi cho vào trang, chưa login thì đẩy về login page.
+Phân quyền theo role - admin thì được vào admin panel, user thường thì không. Kiểm tra cả frontend lẫn backend.
+Token expiration - access token hết hạn thì tự động refresh hoặc đẩy về login, đừng để user thao tác rồi mới báo lỗi.
+UX & Navigation
+Giữ trạng thái form khi lỗi - user điền form dài rồi submit bị lỗi validate, đừng để mất hết data đã nhập.
+Redirect sau khi login - sau khi đăng nhập xong thì đưa user về đúng trang họ muốn vào trước đó (deep linking).
+Confirm trước khi xóa - đặc biệt là những thao tác không thể undo, phải có popup confirm.
+Disable button khi đang submit - tránh user spam click gửi request nhiều lần.
+Loading states - hiển thị spinner/skeleton khi đang fetch data, đừng để trang trống trơn.
+Data Handling
+Validate ở cả client và server - frontend validate để UX tốt, backend validate để bảo mật. Không bao giờ tin tưởng hoàn toàn data từ client.
+Xử lý lỗi API gracefully - API lỗi thì hiện message rõ ràng cho user, không để console.log rồi im lặng.
+Pagination cho list dài - đừng fetch hết 10,000 records một lúc.
+Debounce cho search/autocomplete - tránh gọi API liên tục khi user đang gõ.
+Optimistic updates - một số action như like/bookmark có thể update UI trước rồi mới gọi API, nếu lỗi thì rollback.
+Security Basics
+Sanitize user input - tránh XSS, đặc biệt khi render HTML từ user content.
+CSRF protection - dùng token cho các form quan trọng.
+Rate limiting - chống spam, đặc biệt ở login, register, forgot password.
+Không lộ thông tin nhạy cảm - error message đừng expose quá chi tiết (ví dụ: "Email không tồn tại" vs "Email hoặc mật khẩu không đúng").
+HTTPS everywhere - đặc biệt là production.
+Performance
+Lazy load images - đừng load hết ảnh ngay từ đầu.
+Code splitting - chia nhỏ bundle, load theo route.
+Cache hợp lý - static assets, API responses có thể cache được.
+Optimize images - resize, compress trước khi upload.
+Responsive & Accessibility
+Mobile-first hoặc responsive - test trên nhiều kích thước màn hình.
+Keyboard navigation - các interactive elements phải dùng được bằng phím Tab, Enter.
+Alt text cho images - tốt cho SEO và accessibility.
+Contrast ratio - text phải đọc được rõ ràng.
+Edge Cases
+Empty states - chưa có data thì hiển thị gì? Đừng để trang trống.
+Error boundaries - catch lỗi React để app không bị crash hẳn.
+Offline handling - app hoạt động thế nào khi mất mạng?
+Timezone handling - làm việc với datetime cẩn thận, nhất là app có user nhiều múi giờ.
+Backend Best Practices
+Soft delete - nhiều khi xóa không thật sự xóa database, chỉ đánh dấu deleted_at.
+Transaction cho operations phức tạp - nhiều bước phải thành công cùng lúc.
+Log đầy đủ - error logs, audit logs cho các action quan trọng.
+API versioning - /api/v1/, /api/v2/ để dễ maintain khi có breaking changes.

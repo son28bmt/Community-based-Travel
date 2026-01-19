@@ -79,7 +79,7 @@ export default function DiscoveryPage() {
     let list = items;
     if (region !== "all") {
       list = items.filter(
-        (item: any) => cityRegionMap[normalizeText(item.province)] === region
+        (item: any) => cityRegionMap[normalizeText(item.province)] === region,
       );
     }
     return list.slice(0, 8);
@@ -151,11 +151,11 @@ export default function DiscoveryPage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {[...Array(4)].map((_, idx) => (
                 <div
                   key={idx}
-                  className="h-48 rounded-2xl bg-white border border-gray-100 animate-pulse"
+                  className="h-32 md:h-48 rounded-2xl bg-white border border-gray-100 animate-pulse"
                 ></div>
               ))}
             </div>
@@ -164,19 +164,19 @@ export default function DiscoveryPage() {
               Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {nearbyCities.map((city: any) => (
                 <Link
                   key={city._id}
                   href={`/thanh-pho/${city._id}`}
-                  className="group block relative h-48 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                  className="group block relative h-32 md:h-48 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
                 >
                   {city.imageUrl ? (
                     <Image
                       src={city.imageUrl}
                       alt={city.name}
                       fill
-                      sizes="(max-width: 1024px) 100vw, 25vw"
+                      sizes="(max-width: 1024px) 50vw, 25vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       unoptimized={!city.imageUrl.startsWith("/")}
                     />
@@ -186,9 +186,11 @@ export default function DiscoveryPage() {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <h3 className="text-lg font-bold">{city.name}</h3>
-                    <p className="text-xs text-white/90 font-medium uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                  <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 text-white transform translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-sm md:text-lg font-bold line-clamp-1">
+                      {city.name}
+                    </h3>
+                    <p className="text-[10px] md:text-xs text-white/90 font-medium uppercase tracking-wider opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-75">
                       {city.region}
                     </p>
                   </div>
@@ -225,16 +227,16 @@ export default function DiscoveryPage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
               {[...Array(8)].map((_, idx) => (
                 <div
                   key={idx}
-                  className="h-72 rounded-2xl bg-white border border-gray-100 animate-pulse"
+                  className="h-48 md:h-72 rounded-2xl bg-white border border-gray-100 animate-pulse"
                 ></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
               {popularLocations.length > 0 ? (
                 popularLocations.map((item: any) => (
                   <Link
@@ -242,13 +244,13 @@ export default function DiscoveryPage() {
                     href={`/dia-diem/${item._id}`}
                     className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   >
-                    <div className="relative h-48 bg-gray-100 overflow-hidden">
+                    <div className="relative h-32 md:h-48 bg-gray-100 overflow-hidden">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
                           alt={item.name}
                           fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 25vw"
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                           unoptimized={!item.imageUrl.startsWith("/")}
                         />
@@ -257,19 +259,19 @@ export default function DiscoveryPage() {
                           <FaMapMarkerAlt size={48} />
                         </div>
                       )}
-                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 text-gray-800">
+                      <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-white/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-lg text-[10px] md:text-xs font-bold shadow-sm flex items-center gap-1 text-gray-800">
                         <FaStar className="text-amber-400" /> 4.5
                       </div>
                     </div>
-                    <div className="p-5 flex-1 flex flex-col">
-                      <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                    <div className="p-3 md:p-5 flex-1 flex flex-col">
+                      <h3 className="font-bold text-gray-900 text-sm md:text-lg mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-blue-600 transition-colors">
                         {item.name}
                       </h3>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                      <p className="hidden md:block text-sm text-gray-500 line-clamp-2 mb-4">
                         {stripHtml(item.description) ||
                           "Một điểm đến tuyệt vời đang chờ bạn khám phá."}
                       </p>
-                      <div className="mt-auto pt-4 border-t border-gray-50 flex items-center gap-2 text-xs font-semibold text-blue-600">
+                      <div className="mt-auto pt-2 md:pt-4 border-t border-gray-50 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs font-semibold text-blue-600">
                         <FaMapMarkerAlt />
                         <span className="truncate">{item.province}</span>
                       </div>

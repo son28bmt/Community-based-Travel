@@ -59,10 +59,14 @@ export default function Header() {
   const { data: notificationData } = useQuery({
     queryKey: ["user-notifications"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/notifications", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: { limit: 10 },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/notifications",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: { limit: 10 },
+        },
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -74,7 +78,7 @@ export default function Header() {
       return axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/notifications/${id}/read`,
         {},
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
@@ -85,9 +89,10 @@ export default function Header() {
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       return axios.patch(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/notifications/read-all",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/notifications/read-all",
         {},
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } },
       );
     },
     onSuccess: () => {
@@ -117,33 +122,43 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 transition-all">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Mobile Menu Button - Left */}
-        <button
-          className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          <div className="space-y-1.5">
-            <span
-              className={`block w-6 h-0.5 bg-current transition-all ${isMobileMenuOpen ? "rotate-45 translate-y-2" : ""}`}
-            ></span>
-            <span
-              className={`block w-6 h-0.5 bg-current transition-all ${isMobileMenuOpen ? "opacity-0" : ""}`}
-            ></span>
-            <span
-              className={`block w-6 h-0.5 bg-current transition-all ${isMobileMenuOpen ? "-rotate-45 -translate-y-2" : ""}`}
-            ></span>
-          </div>
-        </button>
+        {/* Left Side: Mobile Menu & Logo */}
+        <div className="flex items-center gap-3 md:gap-8">
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg -ml-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Menu"
+          >
+            <div className="space-y-1.5">
+              <span
+                className={`block w-6 h-0.5 bg-current transition-all ${
+                  isMobileMenuOpen ? "rotate-45 translate-y-2" : ""
+                }`}
+              ></span>
+              <span
+                className={`block w-6 h-0.5 bg-current transition-all ${
+                  isMobileMenuOpen ? "opacity-0" : ""
+                }`}
+              ></span>
+              <span
+                className={`block w-6 h-0.5 bg-current transition-all ${
+                  isMobileMenuOpen ? "-rotate-45 -translate-y-2" : ""
+                }`}
+              ></span>
+            </div>
+          </button>
 
-        {/* Logo - Center/Left */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-blue-200 shadow-lg group-hover:scale-110 transition-transform">
-            V
-          </div>
-          <span className="text-xl font-extrabold text-gray-800 tracking-tight hidden sm:block">
-            Du Lịch Việt
-          </span>
-        </Link>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-blue-200 shadow-lg group-hover:scale-110 transition-transform">
+              V
+            </div>
+            <span className="text-xl font-extrabold text-gray-800 tracking-tight hidden sm:block">
+              Du Lịch Việt
+            </span>
+          </Link>
+        </div>
 
         {/* Navigation - Desktop */}
         <nav className="hidden md:flex items-center gap-1 bg-gray-50 p-1 rounded-full border border-gray-100">
@@ -155,7 +170,7 @@ export default function Header() {
                 "px-4 py-1.5 rounded-full text-sm font-bold transition-all",
                 pathname === item.href
                   ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100",
               )}
             >
               {item.name}
@@ -238,7 +253,7 @@ export default function Header() {
                                   </p>
                                   <p className="text-[10px] text-gray-400 mt-2">
                                     {new Date(
-                                      notif.createdAt
+                                      notif.createdAt,
                                     ).toLocaleDateString("vi-VN", {
                                       hour: "2-digit",
                                       minute: "2-digit",
@@ -253,6 +268,13 @@ export default function Header() {
                               </div>
                             </div>
                           ))}
+                          <Link
+                            href="/dong-gop"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 text-gray-600 hover:bg-gray-50"
+                          >
+                            Đóng Góp
+                          </Link>
                         </div>
                       )}
                     </div>
@@ -403,13 +425,20 @@ export default function Header() {
                     "px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3",
                     pathname === item.href
                       ? "bg-blue-50 text-blue-600"
-                      : "text-gray-600 hover:bg-gray-50"
+                      : "text-gray-600 hover:bg-gray-50",
                   )}
                 >
                   {/* Optional: Add icons here if desired */}
                   {item.name}
                 </Link>
               ))}
+              <Link
+                href="/dong-gop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 text-gray-600 hover:bg-gray-50"
+              >
+                Đóng Góp
+              </Link>
               {!session && (
                 <div className="pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
                   <Link

@@ -20,8 +20,18 @@ const locationSchema = new mongoose.Schema(
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     rating: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 },
+    deletedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+// Soft delete middleware
+locationSchema.pre(/^find/, function (next) {
+  if (this.options?.withDeleted) {
+    return next();
+  }
+  this.find({ deletedAt: null });
+  next();
+});
 
 module.exports = mongoose.model("Location", locationSchema);
