@@ -58,7 +58,7 @@ function SearchContent() {
   const { data: citiesData } = useQuery({
     queryKey: ["search-cities"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/cities", {
         params: { limit: 100, page: 1 },
       });
       return res.data;
@@ -70,7 +70,7 @@ function SearchContent() {
   const { data: categoriesData } = useQuery({
     queryKey: ["search-categories"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/categories");
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories");
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -88,7 +88,7 @@ function SearchContent() {
       page,
     ],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/locations", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
         params: {
           search: debouncedSearch || undefined,
           category: category || undefined,

@@ -50,7 +50,7 @@ export default function UserProfile() {
         };
       }
       const res = await axios.get(
-        `http://localhost:5000/api/users/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}`,
         config
       );
       return res.data;
@@ -71,7 +71,7 @@ export default function UserProfile() {
     queryKey: ["user-contributions", id, contribPage],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/users/${id}/contributions`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}/contributions`,
         { params: { page: contribPage, limit: 6, sort: "newest" } }
       );
       return res.data;
@@ -83,7 +83,7 @@ export default function UserProfile() {
     queryKey: ["user-posts", id, postPage],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/users/${id}/posts`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}/posts`,
         { params: { page: postPage, limit: 6 } }
       );
       return res.data;
@@ -95,7 +95,7 @@ export default function UserProfile() {
     queryKey: ["user-reviews", id, reviewPage],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/users/${id}/reviews`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}/reviews`,
         { params: { page: reviewPage, limit: 6 } }
       );
       return res.data;
@@ -107,7 +107,7 @@ export default function UserProfile() {
     queryKey: ["user-saved", id, savedPage],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/users/${id}/saved`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}/saved`,
         { params: { page: savedPage, limit: 6 } }
       );
       return res.data;
@@ -123,7 +123,7 @@ export default function UserProfile() {
         throw new Error("No token");
       }
       const res = await axios.put(
-        `http://localhost:5000/api/users/${id}/follow`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${id}/follow`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

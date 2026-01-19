@@ -26,7 +26,7 @@ export default function AdminReportsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-reports", page, statusFilter, severityFilter],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/reports", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/reports", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: {
           page,
@@ -51,7 +51,7 @@ export default function AdminReportsPage() {
       action?: string;
     }) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/reports/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reports/${id}`,
         { status, action },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

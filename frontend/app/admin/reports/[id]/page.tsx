@@ -32,7 +32,7 @@ export default function AdminReportDetailPage() {
     queryKey: ["admin-report", id],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/reports/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reports/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -51,7 +51,7 @@ export default function AdminReportDetailPage() {
       action?: string;
     }) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/reports/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/reports/${id}`,
         { status, action },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

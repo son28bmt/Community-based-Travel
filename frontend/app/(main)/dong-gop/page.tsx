@@ -45,7 +45,7 @@ export default function ContributionPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["contribution-cities"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/cities", {
         params: { limit: 200, page: 1 },
       });
       return res.data;
@@ -55,7 +55,7 @@ export default function ContributionPage() {
   const { data: categoriesData } = useQuery({
     queryKey: ["contribution-categories"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/categories");
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories");
       return res.data;
     },
   });
@@ -69,7 +69,7 @@ export default function ContributionPage() {
     queryKey: ["contribution-subcategories", selectedCategory?._id],
     queryFn: async () => {
       if (!selectedCategory?._id) return { items: [] };
-      const res = await axios.get("http://localhost:5000/api/categories", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories", {
         params: { parent: selectedCategory._id },
       });
       return res.data;
@@ -91,7 +91,7 @@ export default function ContributionPage() {
         const formData = new FormData();
         formData.append("file", file);
         const res = await axios.post(
-          "http://localhost:5000/api/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
           formData,
           {
             headers: {
@@ -117,7 +117,7 @@ export default function ContributionPage() {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/contributions/locations",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/contributions/locations",
         {
           ...form,
           images,

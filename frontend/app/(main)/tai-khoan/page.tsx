@@ -38,7 +38,7 @@ export default function EditProfilePage() {
     }
     if (session?.user?.id) {
       axios
-        .get(`http://localhost:5000/api/users/${session.user.id}`)
+        .get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${session.user.id}`)
         .then((res) => {
           const user = res.data;
           reset({
@@ -78,7 +78,7 @@ export default function EditProfilePage() {
       }
 
       const res = await axios.post(
-        "http://localhost:5000/api/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
         formData,
         {
           headers: {
@@ -111,7 +111,7 @@ export default function EditProfilePage() {
         return;
       }
 
-      await axios.put("http://localhost:5000/api/users/profile", data, {
+      await axios.put((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/users/profile", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

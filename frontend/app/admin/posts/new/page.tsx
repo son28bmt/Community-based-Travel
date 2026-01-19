@@ -154,7 +154,7 @@ export default function AdminPostCreatePage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -179,7 +179,7 @@ export default function AdminPostCreatePage() {
       uploadData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:5000/api/admin/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
         uploadData,
         {
           headers: {
@@ -213,7 +213,7 @@ export default function AdminPostCreatePage() {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/admin/posts", formData, {
+      await axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/posts", formData, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
 

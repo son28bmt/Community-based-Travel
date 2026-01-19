@@ -157,7 +157,7 @@ export default function AdminLocationEditPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["admin-cities-select"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: { page: 1, limit: 100 },
       });
@@ -170,7 +170,7 @@ export default function AdminLocationEditPage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -189,7 +189,7 @@ export default function AdminLocationEditPage() {
   const fetchLocation = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/locations/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -232,7 +232,7 @@ export default function AdminLocationEditPage() {
         uploadData.append("file", file);
 
         const res = await axios.post(
-          "http://localhost:5000/api/admin/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
           uploadData,
           {
             headers: {
@@ -277,7 +277,7 @@ export default function AdminLocationEditPage() {
   const handleSubmit = async () => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/locations/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`,
         formData,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },

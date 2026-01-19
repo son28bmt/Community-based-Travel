@@ -24,7 +24,7 @@ export default function AdminUserCreatePage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return axios.post("http://localhost:5000/api/admin/users", data, {
+      return axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/users", data, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },

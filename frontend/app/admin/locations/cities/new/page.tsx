@@ -31,7 +31,7 @@ export default function AdminCityCreatePage() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/admin/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
         uploadData,
         {
           headers: {
@@ -52,7 +52,7 @@ export default function AdminCityCreatePage() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:5000/api/admin/cities", formData, {
+      await axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", formData, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
       toast.success("Đã tạo tỉnh/thành phố");

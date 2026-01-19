@@ -29,7 +29,7 @@ export default function AdminCitiesPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-cities", page, search, filterRegion],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: {
           page,
@@ -46,7 +46,7 @@ export default function AdminCitiesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`http://localhost:5000/api/admin/cities/${id}`, {
+      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/cities/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },

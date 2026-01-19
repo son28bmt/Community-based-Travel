@@ -35,7 +35,7 @@ export default function AdminCategoryCreatePage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -49,7 +49,7 @@ export default function AdminCategoryCreatePage() {
     mutationFn: async (data: typeof formData) => {
       // Clean up parentId if empty
       const payload = { ...data, parentId: data.parentId || undefined };
-      return axios.post("http://localhost:5000/api/admin/categories", payload, {
+      return axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories", payload, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },

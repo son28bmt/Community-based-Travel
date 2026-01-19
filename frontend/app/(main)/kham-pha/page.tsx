@@ -35,7 +35,7 @@ export default function DiscoveryPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["public-locations", search],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/locations", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
         params: {
           page: 1,
           limit: 20,
@@ -51,7 +51,7 @@ export default function DiscoveryPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["public-cities"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/cities", {
         params: { page: 1, limit: 100 },
       });
       return res.data;

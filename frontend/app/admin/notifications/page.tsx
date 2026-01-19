@@ -23,7 +23,7 @@ export default function AdminNotificationsPage() {
     queryKey: ["admin-notifications", page],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/notifications",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { page, limit: 20 },
@@ -37,7 +37,7 @@ export default function AdminNotificationsPage() {
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       return axios.patch(
-        "http://localhost:5000/api/admin/notifications/read-all",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications/read-all",
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
@@ -54,7 +54,7 @@ export default function AdminNotificationsPage() {
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/notifications/${id}/read`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/notifications/${id}/read`,
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
@@ -70,7 +70,7 @@ export default function AdminNotificationsPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return axios.delete(
-        `http://localhost:5000/api/admin/notifications/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/notifications/${id}`,
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
     },
@@ -89,7 +89,7 @@ export default function AdminNotificationsPage() {
   const createMutation = useMutation({
     mutationFn: async (formData: any) => {
       return axios.post(
-        "http://localhost:5000/api/admin/notifications",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications",
         formData,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },

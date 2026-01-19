@@ -37,7 +37,7 @@ export default function LocationDetailPage() {
   } = useQuery({
     queryKey: ["location-detail", id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/locations/${id}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/locations/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -47,7 +47,7 @@ export default function LocationDetailPage() {
   const { data: reviewsData } = useQuery({
     queryKey: ["location-reviews", id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/reviews/${id}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/reviews/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -57,7 +57,7 @@ export default function LocationDetailPage() {
   const { data: nearbyLocationsData } = useQuery({
     queryKey: ["nearby-locations", location?.province],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/locations", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
         params: {
           province: location.province,
           limit: 5, // Fetch 5 to ensure we have enough after filtering current one

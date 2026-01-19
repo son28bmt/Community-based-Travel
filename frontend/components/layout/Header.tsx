@@ -59,7 +59,7 @@ export default function Header() {
   const { data: notificationData } = useQuery({
     queryKey: ["user-notifications"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/notifications", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/notifications", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: { limit: 10 },
       });
@@ -72,7 +72,7 @@ export default function Header() {
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return axios.patch(
-        `http://localhost:5000/api/notifications/${id}/read`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/notifications/${id}/read`,
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
@@ -85,7 +85,7 @@ export default function Header() {
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       return axios.patch(
-        "http://localhost:5000/api/notifications/read-all",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/notifications/read-all",
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

@@ -26,7 +26,7 @@ export default function AdminPostsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-posts", page, search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/posts", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/posts", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: {
           page,
@@ -46,7 +46,7 @@ export default function AdminPostsPage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -58,7 +58,7 @@ export default function AdminPostsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`http://localhost:5000/api/admin/posts/${id}`, {
+      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },
@@ -74,7 +74,7 @@ export default function AdminPostsPage() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/posts/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
         { status },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

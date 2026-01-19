@@ -39,7 +39,7 @@ export default function AdminCityEditPage() {
   const fetchCity = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/cities/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/cities/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -70,7 +70,7 @@ export default function AdminCityEditPage() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/admin/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
         uploadData,
         {
           headers: {
@@ -92,7 +92,7 @@ export default function AdminCityEditPage() {
   const handleSubmit = async () => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/cities/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/cities/${id}`,
         formData,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },

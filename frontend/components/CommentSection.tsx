@@ -35,7 +35,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
     queryKey: ["comments", postId],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/posts/${postId}/comments`
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/comments`
       );
       return res.data;
     },
@@ -48,7 +48,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       if (!token) throw new Error("No token");
 
       const res = await axios.post(
-        `http://localhost:5000/api/posts/${postId}/comments`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/comments`,
         { content },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -74,7 +74,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       if (!token) throw new Error("No token");
 
       const res = await axios.post(
-        `http://localhost:5000/api/posts/comments/${commentId}/reply`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/comments/${commentId}/reply`,
         { content: replyContent },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -100,7 +100,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `http://localhost:5000/api/posts/comments/${commentId}/like`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/comments/${commentId}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

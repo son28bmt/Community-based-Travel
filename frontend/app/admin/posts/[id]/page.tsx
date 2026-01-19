@@ -161,7 +161,7 @@ export default function AdminPostEditPage({
     queryKey: ["admin-post", id],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/posts/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -176,7 +176,7 @@ export default function AdminPostEditPage({
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -200,7 +200,7 @@ export default function AdminPostEditPage({
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return axios.patch(`http://localhost:5000/api/admin/posts/${id}`, data, {
+      return axios.patch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/posts/${id}`, data, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },
@@ -227,7 +227,7 @@ export default function AdminPostEditPage({
       uploadData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:5000/api/admin/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
         uploadData,
         {
           headers: {

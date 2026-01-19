@@ -35,7 +35,7 @@ export default function ReviewModal({
         const formData = new FormData();
         formData.append("file", file);
         const res = await axios.post(
-          "http://localhost:5000/api/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
           formData,
           {
             headers: {
@@ -56,7 +56,7 @@ export default function ReviewModal({
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await axios.post(
-        "http://localhost:5000/api/reviews",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/reviews",
         {
           locationId,
           rating,

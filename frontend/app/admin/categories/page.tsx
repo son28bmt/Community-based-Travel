@@ -40,7 +40,7 @@ export default function AdminCategoriesPage() {
     queryKey: ["admin-categories", search],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { search: search || undefined },
@@ -53,7 +53,7 @@ export default function AdminCategoriesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return axios.delete(`http://localhost:5000/api/admin/categories/${id}`, {
+      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },
@@ -69,7 +69,7 @@ export default function AdminCategoriesPage() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/categories/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
         { status },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

@@ -42,7 +42,7 @@ export default function AdminCategoryEditPage({
     queryKey: ["admin-category", id],
     queryFn: async () => {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/categories/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -57,7 +57,7 @@ export default function AdminCategoryEditPage({
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
@@ -83,7 +83,7 @@ export default function AdminCategoryEditPage({
     mutationFn: async (data: typeof formData) => {
       const payload = { ...data, parentId: data.parentId || null };
       return axios.patch(
-        `http://localhost:5000/api/admin/categories/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
@@ -103,7 +103,7 @@ export default function AdminCategoryEditPage({
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      return axios.delete(`http://localhost:5000/api/admin/categories/${id}`, {
+      return axios.delete(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/categories/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },

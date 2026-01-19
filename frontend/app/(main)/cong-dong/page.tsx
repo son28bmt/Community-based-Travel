@@ -52,7 +52,7 @@ export default function CommunityPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["community-posts", page, category],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/posts", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts", {
         params: { page, limit: 6, category: category || undefined },
       });
       return res.data;
@@ -66,7 +66,7 @@ export default function CommunityPage() {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `http://localhost:5000/api/posts/${postId}/like`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

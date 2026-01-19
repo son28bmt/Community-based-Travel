@@ -38,7 +38,7 @@ export default function CityDetailPage() {
   const { data: cityData, isLoading: isCityLoading } = useQuery({
     queryKey: ["city", id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/cities/${id}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/cities/${id}`);
       return res.data.city;
     },
     enabled: !!id,
@@ -48,7 +48,7 @@ export default function CityDetailPage() {
     queryKey: ["locations-in-city", id, activeCategory, search],
     queryFn: async () => {
       if (!cityData?.name) return { items: [] };
-      const res = await axios.get("http://localhost:5000/api/locations", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
         params: {
           province: cityData.name,
           category: activeCategory !== "all" ? activeCategory : undefined,

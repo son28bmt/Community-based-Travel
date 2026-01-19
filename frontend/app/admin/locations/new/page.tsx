@@ -153,7 +153,7 @@ export default function AdminLocationCreatePage() {
   const { data: citiesData } = useQuery({
     queryKey: ["admin-cities-select"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         params: { page: 1, limit: 100 },
       });
@@ -168,7 +168,7 @@ export default function AdminLocationCreatePage() {
     queryKey: ["admin-parent-categories"],
     queryFn: async () => {
       // Fetch only parents (default behavior of public API now)
-      const res = await axios.get("http://localhost:5000/api/categories");
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories");
       return res.data;
     },
   });
@@ -177,7 +177,7 @@ export default function AdminLocationCreatePage() {
     queryKey: ["admin-sub-categories", selectedParent],
     queryFn: async () => {
       if (!selectedParent) return { items: [] };
-      const res = await axios.get("http://localhost:5000/api/categories", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories", {
         params: { parent: selectedParent },
       });
       return res.data;
@@ -204,7 +204,7 @@ export default function AdminLocationCreatePage() {
         uploadData.append("file", file);
 
         const res = await axios.post(
-          "http://localhost:5000/api/admin/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
           uploadData,
           {
             headers: {
@@ -248,7 +248,7 @@ export default function AdminLocationCreatePage() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:5000/api/admin/locations", formData, {
+      await axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/locations", formData, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
       toast.success("Đã tạo địa điểm");

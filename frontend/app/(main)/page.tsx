@@ -45,7 +45,7 @@ export default function Home() {
   const { data: categoriesData } = useQuery({
     queryKey: ["home-categories"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/categories");
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/categories");
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -57,7 +57,7 @@ export default function Home() {
   const { data: citiesData, isLoading: isCitiesLoading } = useQuery({
     queryKey: ["home-cities"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/cities", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/cities", {
         params: { limit: 4, page: 1 },
       });
       return res.data;
@@ -69,7 +69,7 @@ export default function Home() {
   const { data: locationsData, isLoading: isLocationsLoading } = useQuery({
     queryKey: ["home-locations"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/locations", {
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/locations", {
         params: { limit: 8, page: 1, includeRatings: "1" }, // Request ratings
       });
       return res.data;

@@ -52,7 +52,7 @@ export default function PostDetailPage() {
   } = useQuery({
     queryKey: ["post", postId],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/posts/${postId}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}`);
       return res.data;
     },
   });
@@ -60,7 +60,7 @@ export default function PostDetailPage() {
   const { data: popularPosts } = useQuery({
     queryKey: ["popular-posts"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/posts?limit=5");
+      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts?limit=5");
       return res.data.items;
     },
   });
@@ -79,7 +79,7 @@ export default function PostDetailPage() {
         };
       }
       const res = await axios.get(
-        `http://localhost:5000/api/users/${authorId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${authorId}`,
         config
       );
       return res.data;
@@ -96,7 +96,7 @@ export default function PostDetailPage() {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `http://localhost:5000/api/posts/${postId}/like`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -126,7 +126,7 @@ export default function PostDetailPage() {
       if (!token) throw new Error("No token");
 
       const res = await axios.put(
-        `http://localhost:5000/api/users/${authorId}/follow`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/users/${authorId}/follow`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

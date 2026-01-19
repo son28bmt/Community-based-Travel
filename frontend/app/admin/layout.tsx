@@ -85,7 +85,7 @@ export default function AdminLayout({
     queryKey: ["admin-notifications"],
     queryFn: async () => {
       const res = await axios.get(
-        "http://localhost:5000/api/admin/notifications",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
           params: { limit: 10, exclude_type: "admin_system" },
@@ -100,7 +100,7 @@ export default function AdminLayout({
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return axios.patch(
-        `http://localhost:5000/api/admin/notifications/${id}/read`,
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/notifications/${id}/read`,
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
@@ -113,7 +113,7 @@ export default function AdminLayout({
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       return axios.patch(
-        "http://localhost:5000/api/admin/notifications/read-all",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/notifications/read-all",
         {},
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );

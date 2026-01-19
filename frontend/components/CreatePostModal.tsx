@@ -34,7 +34,7 @@ export default function CreatePostModal({
       const formData = new FormData();
       formData.append("file", file);
       const res = await axios.post(
-        "http://localhost:5000/api/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
         formData,
         {
           headers: {
@@ -49,7 +49,7 @@ export default function CreatePostModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return axios.post("http://localhost:5000/api/posts", data, {
+      return axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts", data, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
       });
     },
