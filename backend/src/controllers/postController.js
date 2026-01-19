@@ -1,4 +1,5 @@
 const Post = require("../models/Post");
+const DOMPurify = require("isomorphic-dompurify");
 
 const createPost = async (req, res, next) => {
   try {
@@ -10,9 +11,29 @@ const createPost = async (req, res, next) => {
         .json({ message: "Title and content are required" });
     }
 
+    // Sanitize HTML content to prevent XSS attacks
+    const sanitizedContent = DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: [
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "h1",
+        "h2",
+        "h3",
+        "ul",
+        "ol",
+        "li",
+        "a",
+        "img",
+      ],
+      ALLOWED_ATTR: ["href", "src", "alt", "title", "class"],
+    });
+
     const post = await Post.create({
       title,
-      content,
+      content: sanitizedContent,
       imageUrl,
       category: category || "General",
       status: status || "published", // Default to published for simplified flow
@@ -62,7 +83,7 @@ const getPostById = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id).populate(
       "createdBy",
-      "name avatar"
+      "name avatar",
     );
     if (!post) {
       return res.status(404).json({ message: "Post not found" });

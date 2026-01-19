@@ -26,7 +26,7 @@ const createComment = async (req, res, next) => {
 
     const populatedComment = await Comment.findById(comment._id).populate(
       "user",
-      "name avatar"
+      "name avatar",
     );
 
     return res.status(201).json(populatedComment);
@@ -38,12 +38,30 @@ const createComment = async (req, res, next) => {
 const getComments = async (req, res, next) => {
   try {
     const postId = req.params.id;
-    const comments = await Comment.find({ post: postId })
-      .populate("user", "name avatar")
-      .populate("replies.user", "name avatar")
-      .sort({ createdAt: -1 });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
 
-    return res.json(comments);
+    const filter = { post: postId };
+
+    const [items, total] = await Promise.all([
+      Comment.find(filter)
+        .populate("user", "name avatar")
+        .populate("replies.user", "name avatar")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Comment.countDocuments(filter),
+    ]);
+
+    return res.json({
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return next(err);
   }
@@ -59,7 +77,7 @@ const toggleCommentLike = async (req, res, next) => {
 
     if (isLiked) {
       comment.likes = comment.likes.filter(
-        (id) => String(id) !== String(userId)
+        (id) => String(id) !== String(userId),
       );
     } else {
       comment.likes.push(userId);

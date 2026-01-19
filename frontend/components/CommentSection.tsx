@@ -31,15 +31,17 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const [replyContent, setReplyContent] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const { data: comments, isLoading } = useQuery({
+  const { data: commentsData, isLoading } = useQuery({
     queryKey: ["comments", postId],
     queryFn: async () => {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/comments`
+        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/posts/${postId}/comments?limit=100`,
       );
       return res.data;
     },
   });
+
+  const comments = commentsData?.items || commentsData || [];
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -52,7 +54,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         { content },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -78,7 +80,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         { content: replyContent },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -104,7 +106,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -247,7 +249,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                       <button
                         onClick={() =>
                           setReplyingTo(
-                            replyingTo === comment._id ? null : comment._id
+                            replyingTo === comment._id ? null : comment._id,
                           )
                         }
                         className="text-xs font-bold text-gray-500 hover:text-blue-600 transition flex items-center gap-1"
