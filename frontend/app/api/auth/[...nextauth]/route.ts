@@ -46,25 +46,25 @@ const handler = NextAuth({
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
-                token.accessToken = user.token;
+                token.accessToken = (user as any).token;
                 token.name = user.name;
-                token.username = user.username; // Map username
-                token.picture = user.avatar;
+                token.username = (user as any).username; // Map username
+                token.picture = (user as any).avatar;
             }
             if (trigger === "update" && session?.user) {
                 if (session.user.name) token.name = session.user.name;
                 if (session.user.image) token.picture = session.user.image;
-                if (session.user.username) token.username = session.user.username; // Update username
+                if ((session.user as any).username) token.username = (session.user as any).username; // Update username
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                session.user.id = token.id as string;
-                session.user.role = token.role as string;
-                session.user.accessToken = token.accessToken as string;
+                (session.user as any).id = token.id as string;
+                (session.user as any).role = token.role as string;
+                (session.user as any).accessToken = token.accessToken as string;
                 session.user.name = token.name as string;
-                session.user.username = token.username as string; // Pass to session
+                (session.user as any).username = token.username as string; // Pass to session
                 session.user.image = token.picture as string;
             }
             return session;

@@ -116,12 +116,13 @@ export default function EditProfilePage() {
       });
 
       // Update Client Session
+      // @ts-ignore
       await update({
         ...session,
         user: {
           ...session?.user,
           name: data.name,
-          username: data.username || session?.user?.username,
+          username: data.username || (session?.user as any)?.username,
           image: data.avatar || session?.user?.image,
         },
       });

@@ -1,4 +1,5 @@
 const Location = require("../models/Location");
+const Notification = require("../models/Notification");
 
 const listLocations = async (req, res, next) => {
   try {
@@ -97,6 +98,8 @@ const updateLocation = async (req, res, next) => {
       return res.status(404).json({ message: "Location not found" });
     }
 
+    const oldStatus = location.status;
+
     if (name !== undefined) location.name = name;
     if (category !== undefined) location.category = category;
     if (province !== undefined) location.province = province;
@@ -108,6 +111,36 @@ const updateLocation = async (req, res, next) => {
     if (images !== undefined) location.images = images;
 
     await location.save();
+
+    // Notify user if status changed
+    if (status && status !== oldStatus && location.createdBy) {
+      let title = "";
+      let message = "";
+      let type = "";
+
+      if (status === "approved") {
+        title = "Đóng góp được duyệt";
+        message = `Địa điểm "${location.name}" của bạn đã được duyệt và công khai.`;
+        type = "contribution_approved";
+      } else if (status === "rejected") {
+        title = "Đóng góp bị từ chối";
+        message = `Địa điểm "${location.name}" của bạn đã bị từ chối. Lý do: ${
+          location.rejectionReason || "Không có lý do cụ thể"
+        }`;
+        type = "contribution_rejected";
+      }
+
+      if (title) {
+        await Notification.create({
+          recipient: location.createdBy,
+          sender: req.user.id, // Admin who improved it
+          title,
+          message,
+          type,
+          link: `/kham-pha/${location._id}`, // Link to the location detail or somewhere relevant
+        });
+      }
+    }
 
     return res.json({ location });
   } catch (err) {

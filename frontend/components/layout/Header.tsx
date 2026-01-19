@@ -335,8 +335,8 @@ export default function Header() {
                       )}
                       <Link
                         href={
-                          session.user?.username
-                            ? `/thanh-vien/${session.user.username}`
+                          (session.user as any)?.username
+                            ? `/thanh-vien/${(session.user as any).username}`
                             : `/thanh-vien/${session.user?.id || "#"}`
                         }
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

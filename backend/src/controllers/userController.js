@@ -6,6 +6,65 @@ const Review = require("../models/Review");
 const Post = require("../models/Post");
 const env = require("../config/env");
 
+const generateToken = (id) => {
+  return jwt.sign({ id }, env.jwtSecret, {
+    expiresIn: "30d",
+  });
+};
+
+const registerUser = async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+    });
+
+    if (user) {
+      res.status(201).json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        accessToken: generateToken(user._id),
+      });
+    } else {
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user && (await user.matchPassword(password))) {
+      res.json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        accessToken: generateToken(user._id),
+      });
+    } else {
+      res.status(401).json({ message: "Invalid email or password" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 const resolveUserByParam = async (param) => {
   if (mongoose.Types.ObjectId.isValid(param)) {
     return User.findById(param);
@@ -285,12 +344,53 @@ const getSavedLocations = async (req, res, next) => {
   }
 };
 
+const getUserPosts = async (req, res, next) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 6, 1);
+    const user = await resolveUserByParam(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const filter = { createdBy: user._id, status: "published" };
+
+    // If viewing own profile or admin, maybe show others? For now just published.
+    // if (req.user && (req.user.id === user.id || req.user.role === 'admin')) {
+    //   delete filter.status;
+    // }
+
+    const [items, total] = await Promise.all([
+      Post.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate("createdBy", "name avatar"),
+      Post.countDocuments(filter),
+    ]);
+
+    return res.json({
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   getUserProfile,
   getUserContributions,
   getUserReviews,
+  getUserPosts, // Added
   getUserSavedLocations,
   toggleFollow,
+  resolveUserByParam,
   followUser: toggleFollow,
   updateProfile,
   toggleSaveLocation,

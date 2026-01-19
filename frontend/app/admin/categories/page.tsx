@@ -22,7 +22,7 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useState } from "react";
 
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, React.ReactNode> = {
   utensils: <FaUtensils className="text-blue-500" />,
   hotel: <FaHotel className="text-blue-500" />,
   map: <FaMapMarkedAlt className="text-blue-500" />,

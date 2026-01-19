@@ -17,7 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, React.ReactNode> = {
   utensils: <FaUtensils />,
   hotel: <FaHotel />,
   map: <FaMapMarkerAlt />,

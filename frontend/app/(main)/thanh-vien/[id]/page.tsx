@@ -18,9 +18,12 @@ import {
   FaMap,
   FaStar,
   FaBookmark,
+  FaSmile,
+  FaImage,
 } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import CreatePostModal from "@/components/CreatePostModal";
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -28,16 +31,28 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
-  const [activeTab, setActiveTab] = useState("activity");
+  const [activeTab, setActiveTab] = useState("post");
   const [contribPage, setContribPage] = useState(1);
   const [reviewPage, setReviewPage] = useState(1);
   const [savedPage, setSavedPage] = useState(1);
-  const [isMe, setIsMe] = useState(false);
+  const [postPage, setPostPage] = useState(1);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["user-profile", id],
+    queryKey: ["user-profile", id, session?.user?.accessToken],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      const config = {};
+      // @ts-ignore
+      if (session?.user?.accessToken) {
+        // @ts-ignore
+        config.headers = {
+          Authorization: `Bearer ${session.user.accessToken}`,
+        };
+      }
+      const res = await axios.get(
+        `http://localhost:5000/api/users/${id}`,
+        config
+      );
       return res.data;
     },
     enabled: !!id,
@@ -45,12 +60,31 @@ export default function UserProfile() {
 
   const user = data?.user || data;
 
+  const isMe =
+    session?.user && user
+      ? session.user.id === user._id ||
+        session.user.id === user.id ||
+        (session.user as any).username === user.username
+      : false;
+
   const { data: contributionsData } = useQuery({
     queryKey: ["user-contributions", id, contribPage],
     queryFn: async () => {
       const res = await axios.get(
         `http://localhost:5000/api/users/${id}/contributions`,
         { params: { page: contribPage, limit: 6, sort: "newest" } }
+      );
+      return res.data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: postsData } = useQuery({
+    queryKey: ["user-posts", id, postPage],
+    queryFn: async () => {
+      const res = await axios.get(
+        `http://localhost:5000/api/users/${id}/posts`,
+        { params: { page: postPage, limit: 6 } }
       );
       return res.data;
     },
@@ -86,28 +120,42 @@ export default function UserProfile() {
       const token = (session as any)?.user?.accessToken;
       if (!token) {
         toast.error("Please login to follow");
-        return;
+        throw new Error("No token");
       }
-      await axios.put(
+      const res = await axios.put(
         `http://localhost:5000/api/users/${id}/follow`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueriesData(
+        { queryKey: ["user-profile", id] },
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            user: {
+              ...old.user,
+              isFollowing: data.isFollowing,
+              stats: {
+                ...old.user.stats,
+                followers: data.isFollowing
+                  ? (old.user?.stats?.followers || 0) + 1
+                  : (old.user?.stats?.followers || 1) - 1,
+              },
+            },
+          };
+        }
+      );
       queryClient.invalidateQueries({ queryKey: ["user-profile", id] });
-      toast.success("Follow updated");
+      toast.success("Đã cập nhật theo dõi");
+    },
+    onError: (err) => {
+      toast.error("Lỗi khi cập nhật theo dõi");
     },
   });
-
-  useEffect(() => {
-    if (session?.user && user) {
-      const isSameId =
-        session.user.id === user._id || session.user.id === user.id;
-      const isSameUsername = session.user.username === user.username;
-      setIsMe(isSameId || isSameUsername);
-    }
-  }, [session, user]);
 
   if (isLoading) {
     return (
@@ -324,7 +372,7 @@ export default function UserProfile() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 px-2">
               <div className="flex overflow-x-auto scrollbar-hide">
-                {["activity", "contributions", "reviews", "saved"].map(
+                {["post", "activity", "contributions", "reviews", "saved"].map(
                   (tab) => (
                     <button
                       key={tab}
@@ -335,6 +383,7 @@ export default function UserProfile() {
                           : "border-transparent text-gray-500 hover:text-gray-800"
                       }`}
                     >
+                      {tab === "post" && "Bài viết"}
                       {tab === "activity" && "Hoạt động"}
                       {tab === "contributions" && "Địa điểm đã thêm"}
                       {tab === "reviews" && "Đánh giá"}
@@ -346,6 +395,131 @@ export default function UserProfile() {
             </div>
 
             <div className="space-y-6">
+              {activeTab === "post" && (
+                <div className="space-y-4">
+                  {isMe && (
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                      <div className="flex gap-4 mb-4">
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0">
+                          {user.avatar ? (
+                            <Image
+                              src={user.avatar}
+                              alt={user.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold">
+                              {user.name?.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          onClick={() => setIsCreatePostOpen(true)}
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 transition rounded-full flex items-center px-4 cursor-pointer"
+                        >
+                          <span className="text-gray-500 font-medium">
+                            Bạn muốn chia sẻ điều gì?
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                        <div className="flex gap-4">
+                          <button
+                            onClick={() => setIsCreatePostOpen(true)}
+                            className="flex items-center gap-2 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition"
+                          >
+                            <FaImage className="text-green-500 text-lg" />
+                            <span className="text-sm font-semibold">
+                              Ảnh/Video
+                            </span>
+                          </button>
+                          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition">
+                            <FaSmile className="text-yellow-500 text-lg" />
+                            <span className="text-sm font-semibold">
+                              Cảm xúc
+                            </span>
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setIsCreatePostOpen(true)}
+                          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-md shadow-blue-200"
+                        >
+                          Đăng bài
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                      Bài viết
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(postsData?.items || []).map((post: any) => (
+                        <div
+                          key={post._id}
+                          className="border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => router.push(`/bai-viet/${post._id}`)}
+                        >
+                          <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                            {post.imageUrl ? (
+                              <Image
+                                src={post.imageUrl}
+                                alt={post.title}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                                <span className="text-xs">No Image</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">
+                              {post.title}
+                            </h4>
+                            <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full mb-2">
+                              {post.category || "General"}
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              {new Date(post.createdAt).toLocaleDateString(
+                                "vi-VN"
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!postsData?.items?.length && (
+                      <div className="text-sm text-gray-500 text-center py-8">
+                        Chưa có bài viết nào.
+                      </div>
+                    )}
+                    <div className="flex justify-center gap-2 mt-6">
+                      <button
+                        className="px-4 py-2 text-xs border border-gray-200 rounded-full disabled:opacity-50"
+                        disabled={postPage === 1}
+                        onClick={() => setPostPage((p) => Math.max(1, p - 1))}
+                      >
+                        Trước
+                      </button>
+                      <button
+                        className="px-4 py-2 text-xs border border-gray-200 rounded-full disabled:opacity-50"
+                        disabled={
+                          postPage >= (postsData?.pagination?.totalPages || 1)
+                        }
+                        onClick={() => setPostPage((p) => p + 1)}
+                      >
+                        Sau
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === "activity" && (
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -612,6 +786,10 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+      <CreatePostModal
+        isOpen={isCreatePostOpen}
+        onClose={() => setIsCreatePostOpen(false)}
+      />
     </div>
   );
 }

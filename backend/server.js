@@ -37,6 +37,7 @@ app.use("/api/uploads", require("./src/routes/uploads"));
 app.use("/api/users", require("./src/routes/userRoutes"));
 app.use("/api/contributions", require("./src/routes/contributions"));
 app.use("/api/notifications", require("./src/routes/notifications"));
+app.use("/api/posts", require("./src/routes/posts"));
 
 // Admin Routes
 app.use("/api/admin/users", require("./src/routes/adminUsers"));

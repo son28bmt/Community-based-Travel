@@ -12,6 +12,8 @@ const postSchema = new mongoose.Schema(
       default: "pending",
     },
     views: { type: Number, default: 0 },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }], // To be implemented fully later or just use count
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

@@ -26,8 +26,14 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: "", maxlength: 500 },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    savedLocations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Location" }],
-    badges: [{ type: String }],
+    savedLocations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Location",
+      },
+    ],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     role: { type: String, enum: ["user", "admin"], default: "user" },
     status: { type: String, enum: ["active", "banned"], default: "active" },
   },

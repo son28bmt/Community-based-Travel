@@ -164,7 +164,6 @@ export default function AdminLocationEditPage() {
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
-    enabled: !!session?.user?.accessToken,
   });
 
   const { data: categoriesData } = useQuery({

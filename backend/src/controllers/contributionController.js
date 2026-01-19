@@ -50,10 +50,11 @@ const createLocationContribution = async (req, res, next) => {
       const notifications = admins.map((admin) => ({
         recipient: admin._id,
         sender: req.user?.id,
-        title: "New location contribution",
-        message: `New location submitted: ${location.name}`,
-        type: "contribution",
-        link: `/admin/locations/${location._id}`,
+        title: "Đóng góp vị trí mới",
+        message: `Vị trí mới được gửi: ${location.name}`,
+        type: "Đóng góp vị trí",
+        // link: `/admin/locations/${location._id}`,
+        link: `/admin/locations`,
       }));
       await Notification.insertMany(notifications);
     }
