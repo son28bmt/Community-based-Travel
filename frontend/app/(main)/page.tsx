@@ -26,8 +26,6 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <FaMap aria-hidden="true" />,
   bed: <FaHotel aria-hidden="true" />,
   coffee: <FaUtensils aria-hidden="true" />,
-  bed: <FaHotel aria-hidden="true" />,
-  coffee: <FaUtensils aria-hidden="true" />,
 };
 
 interface Category {
