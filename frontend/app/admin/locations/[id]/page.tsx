@@ -1,140 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
-  FaAlignCenter,
-  FaAlignLeft,
-  FaAlignRight,
   FaArrowLeft,
-  FaBold,
   FaCloudUploadAlt,
-  FaHeading,
-  FaImage,
-  FaItalic,
   FaMapMarkerAlt,
   FaSpinner,
-  FaUnderline,
 } from "react-icons/fa";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-const RichTextEditor = ({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-}) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!editorRef.current) return;
-    if (editorRef.current.innerHTML != value) {
-      editorRef.current.innerHTML = value || "<p></p>";
-    }
-  }, [value]);
-
-  const exec = (command: string, cmdValue?: string) => {
-    document.execCommand(command, false, cmdValue);
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertImage = () => {
-    const url = window.prompt("Dan link anh");
-    if (url) {
-      exec("insertImage", url);
-    }
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
-        <button
-          type="button"
-          onClick={() => exec("bold")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Dam"
-        >
-          <FaBold />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("italic")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Nghieng"
-        >
-          <FaItalic />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("underline")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Gach chan"
-        >
-          <FaUnderline />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("formatBlock", "h2")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Tieu de"
-        >
-          <FaHeading />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyLeft")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Can trai"
-        >
-          <FaAlignLeft />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyCenter")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Can giua"
-        >
-          <FaAlignCenter />
-        </button>
-        <button
-          type="button"
-          onClick={() => exec("justifyRight")}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Can phai"
-        >
-          <FaAlignRight />
-        </button>
-        <button
-          type="button"
-          onClick={insertImage}
-          className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-blue-600"
-          title="Chen anh"
-        >
-          <FaImage />
-        </button>
-      </div>
-      <div
-        ref={editorRef}
-        contentEditable
-        className="min-h-[180px] px-4 py-3 text-sm text-gray-700 outline-none"
-        onInput={() => {
-          if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-          }
-        }}
-        suppressContentEditableWarning
-      ></div>
-    </div>
-  );
-};
+const TipTapEditor = dynamic(() => import("@/components/TipTapEditor"), {
+  ssr: false,
+});
 
 export default function AdminLocationEditPage() {
   const { data: session } = useSession();
@@ -157,10 +41,14 @@ export default function AdminLocationEditPage() {
   const { data: citiesData } = useQuery({
     queryKey: ["admin-cities-select"],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/cities", {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        params: { page: 1, limit: 100 },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/cities",
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+          params: { page: 1, limit: 100 },
+        },
+      );
       return res.data;
     },
     enabled: !!session?.user?.accessToken,
@@ -170,10 +58,11 @@ export default function AdminLocationEditPage() {
     queryKey: ["admin-categories-select"],
     queryFn: async () => {
       const res = await axios.get(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/categories",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/admin/categories",
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       return res.data;
     },
@@ -192,7 +81,7 @@ export default function AdminLocationEditPage() {
         `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + ""}/api/admin/locations/${id}`,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       const location = res.data.location;
       setFormData({
@@ -232,14 +121,15 @@ export default function AdminLocationEditPage() {
         uploadData.append("file", file);
 
         const res = await axios.post(
-          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/admin/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+            "/api/admin/uploads",
           uploadData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${session?.user?.accessToken}`,
             },
-          }
+          },
         );
         newImages.push(res.data.url);
       }
@@ -264,7 +154,7 @@ export default function AdminLocationEditPage() {
   const removeImage = (indexToRemove: number) => {
     setFormData((prev) => {
       const updatedImages = prev.images.filter(
-        (_, idx) => idx !== indexToRemove
+        (_, idx) => idx !== indexToRemove,
       );
       return {
         ...prev,
@@ -281,7 +171,7 @@ export default function AdminLocationEditPage() {
         formData,
         {
           headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-        }
+        },
       );
       toast.success("Đã cập nhật địa điểm");
       router.push("/admin/locations");
@@ -412,11 +302,12 @@ export default function AdminLocationEditPage() {
               Mô tả địa điểm
             </label>
             <div className="mt-2">
-              <RichTextEditor
+              <TipTapEditor
                 value={formData.description}
                 onChange={(value) =>
                   setFormData((prev) => ({ ...prev, description: value }))
                 }
+                placeholder="Chia s? m? t? chi ti?t, l?ch s?, m?o tham quan..."
               />
             </div>
           </div>
@@ -434,7 +325,7 @@ export default function AdminLocationEditPage() {
                   >
                     {item}
                   </button>
-                )
+                ),
               )}
             </div>
           </div>

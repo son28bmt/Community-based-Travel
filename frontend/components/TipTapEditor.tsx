@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -49,6 +49,8 @@ interface TipTapEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  uploadEndpoint?: string;
+  uploadHeaders?: Record<string, string>;
 }
 
 const ToolButton = ({
@@ -78,8 +80,14 @@ export default function TipTapEditor({
   value,
   onChange,
   placeholder,
+  uploadEndpoint,
+  uploadHeaders,
 }: TipTapEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       Underline,

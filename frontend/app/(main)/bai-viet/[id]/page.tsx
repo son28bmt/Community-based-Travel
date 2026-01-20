@@ -396,7 +396,7 @@ export default function PostDetailPage() {
           {/* Sidebar - Right Column */}
           <aside className="lg:col-span-4 space-y-6 md:space-y-8">
             {/* Related Location Card */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 top-24">
               <h3 className="font-bold text-gray-800 mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
                 <FaMapMarkerAlt className="text-blue-500" />
                 Địa điểm liên quan

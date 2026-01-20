@@ -35,13 +35,14 @@ export default function ReviewModal({
         const formData = new FormData();
         formData.append("file", file);
         const res = await axios.post(
-          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
+          (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+            "/api/uploads",
           formData,
           {
             headers: {
               Authorization: `Bearer ${session.user.accessToken}`,
             },
-          }
+          },
         );
         uploadedUrls.push(res.data.url);
       }
@@ -56,7 +57,8 @@ export default function ReviewModal({
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await axios.post(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/reviews",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/reviews",
         {
           locationId,
           rating,
@@ -67,7 +69,7 @@ export default function ReviewModal({
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
-        }
+        },
       );
       return res.data;
     },
@@ -142,7 +144,7 @@ export default function ReviewModal({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Chia sẻ trải nghiệm của bạn về địa điểm này..."
-            className="w-full h-32 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
+            className="w-full h-32 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm bg-white text-gray-900 placeholder:text-gray-400"
           ></textarea>
 
           <div className="mt-4">
@@ -181,7 +183,7 @@ export default function ReviewModal({
                       type="button"
                       onClick={() =>
                         setImages((prev) =>
-                          prev.filter((_, index) => index !== idx)
+                          prev.filter((_, index) => index !== idx),
                         )
                       }
                       className="absolute top-1 right-1 bg-white/80 text-xs rounded-full w-5 h-5 flex items-center justify-center"

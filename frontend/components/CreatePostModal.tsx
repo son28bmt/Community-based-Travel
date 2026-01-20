@@ -34,14 +34,15 @@ export default function CreatePostModal({
       const formData = new FormData();
       formData.append("file", file);
       const res = await axios.post(
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/uploads",
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/uploads",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
-        }
+        },
       );
       return res.data.url;
     },
@@ -49,9 +50,14 @@ export default function CreatePostModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return axios.post((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts", data, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
+      return axios.post(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/posts",
+        data,
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-posts"] });
@@ -162,7 +168,7 @@ export default function CreatePostModal({
             </label>
             <input
               placeholder="Nhập tiêu đề bài viết..."
-              className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-lg"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-lg bg-white text-gray-900 placeholder:text-gray-400"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -173,7 +179,7 @@ export default function CreatePostModal({
               Danh mục
             </label>
             <select
-              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white text-gray-900"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >

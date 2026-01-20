@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
@@ -33,21 +33,13 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
-
   const [activeTab, setActiveTab] = useState("post");
   const [contribPage, setContribPage] = useState(1);
   const [reviewPage, setReviewPage] = useState(1);
   const [savedPage, setSavedPage] = useState(1);
   const [postPage, setPostPage] = useState(1);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    name: "",
-    username: "",
-    bio: "",
-  });
+  // const [isEditOpen, setIsEditOpen] = useState(false); // Deprecated
 
   // Fetch User Data
   const { data, isLoading, error } = useQuery({
@@ -79,15 +71,7 @@ export default function UserProfile() {
         (session.user as any).username === user.username
       : false;
 
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        name: user.name || "",
-        username: user.username || "",
-        bio: user.bio || "",
-      });
-    }
-  }, [user]);
+  // Effect for updating local form removed as form is moved to settings
 
   // Fetch data for tabs
   const { data: contributionsData } = useQuery({
@@ -182,62 +166,12 @@ export default function UserProfile() {
     },
   });
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (payload: {
-      name?: string;
-      username?: string;
-      bio?: string;
-      avatar?: string;
-      coverImage?: string;
-    }) => {
-      const token = (session as any)?.user?.accessToken;
-      if (!token) throw new Error("Bạn cần đăng nhập");
-      const res = await axios.patch(`${apiBase}/api/users/me`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return res.data.user || res.data;
-    },
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData(
-        ["user-profile", id, session?.user?.accessToken],
-        (old: any) => {
-          if (!old) return { user: updatedUser };
-          return { ...old, user: { ...(old.user || old), ...updatedUser } };
-        },
-      );
-      toast.success("Đã cập nhật hồ sơ");
-      setIsEditOpen(false);
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Không cập nhật được");
-    },
-  });
+  // UpdateProfileMutation moved to settings/ProfileSettings
 
-  const handleAvatarUpload = async (
-    file: File,
-    field: "avatar" | "coverImage",
-  ) => {
-    const token = (session as any)?.user?.accessToken;
-    if (!token) {
-      toast.error("Bạn cần đăng nhập");
-      return;
-    }
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const uploadRes = await axios.post(`${apiBase}/api/uploads`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const url = uploadRes.data?.url;
-      if (!url) throw new Error("Không nhận được URL ảnh");
-      updateProfileMutation.mutate({ [field]: url });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Tải ảnh thất bại");
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      if (coverInputRef.current) coverInputRef.current.value = "";
-    }
-  };
+  // Avatar upload logic moved to settings/ProfileSettings
+  const handleAvatarUpload = async () => {}; // No-op replacement to avoid breaking render if referenced (it won't be)
+
+  // Function removed as it is now handled in Settings page
 
   if (isLoading) {
     return (
@@ -282,7 +216,7 @@ export default function UserProfile() {
       </div>
 
       <div className="container mx-auto px-4">
-        <div className="relative -mt-16 md:-mt-24 mb-4 flex flex-col md:flex-row items-end md:items-end gap-4 md:gap-8">
+        <div className="relative -mt-16 md:-mt-24 mb-4 flex flex-col md:flex-row items-end md:items-start gap-4 md:gap-8">
           {/* Avatar */}
           <div className="relative shrink-0">
             <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
@@ -291,7 +225,7 @@ export default function UserProfile() {
                   src={user.avatar}
                   alt={user.name}
                   fill
-                  className="object-cover"
+                  className="object-cover rounded-full"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-5xl font-bold">
@@ -303,6 +237,7 @@ export default function UserProfile() {
               <button
                 className="absolute bottom-2 right-2 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full shadow-md transition-colors"
                 title="Change Avatar"
+                onClick={() => router.push("/cai-dat")}
               >
                 <FaCamera size={14} />
               </button>
@@ -310,7 +245,7 @@ export default function UserProfile() {
           </div>
 
           {/* User Info & Actions */}
-          <div className="flex-1 w-full md:w-auto text-center md:text-left pt-2 md:pt-0 pb-2">
+          <div className="flex-1 w-full md:w-auto text-center md:text-left pt-2 md:pt-32 pb-2">
             <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">
                 {user.name}
@@ -358,11 +293,13 @@ export default function UserProfile() {
           {/* Action Buttons */}
           <div className="flex gap-2 w-full md:w-auto justify-center md:justify-end mb-4 md:mb-8">
             {isMe ? (
-              <Link href="/user/settings" className="flex-1 md:flex-none">
-                <button className="w-full md:w-auto px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-full hover:bg-gray-50 transition-colors text-sm">
-                  Chỉnh sửa hồ sơ
-                </button>
-              </Link>
+              <button
+                type="button"
+                onClick={() => router.push("/cai-dat")}
+                className="w-full md:w-auto px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-full hover:bg-gray-50 transition-colors text-sm"
+              >
+                Chỉnh sửa hồ sơ
+              </button>
             ) : (
               <button
                 onClick={() => followMutation.mutate()}
@@ -744,10 +681,7 @@ export default function UserProfile() {
         )}
       </div>
 
-      <CreatePostModal
-        isOpen={isCreatePostOpen}
-        onClose={() => setIsCreatePostOpen(false)}
-      />
+      {/* Edit Profile Modal removed - Use /cai-dat page */}
     </div>
   );
 }

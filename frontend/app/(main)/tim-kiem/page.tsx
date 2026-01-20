@@ -270,7 +270,7 @@ function SearchContent() {
                 }
               }}
               placeholder="Tìm địa điểm, món ăn..."
-              className="flex-1 outline-none text-sm py-2 text-gray-700 placeholder-gray-400"
+              className="flex-1 outline-none text-sm py-2 text-gray-900 placeholder-gray-400"
             />
             <button
               type="submit"
@@ -371,7 +371,7 @@ function SearchContent() {
                         setPage(1);
                         setShowMobileFilters(false);
                       }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 md:py-2.5 text-sm md:text-base text-gray-700 appearance-none bg-gray-50 hover:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all cursor-pointer"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 md:py-2.5 text-sm md:text-base text-gray-700 appearance-none bg-white hover:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all cursor-pointer"
                     >
                       <option value="">Tất cả tỉnh thành</option>
                       {citiesData?.items?.map((city: any) => (

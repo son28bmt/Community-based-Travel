@@ -192,7 +192,7 @@ export default function ContributionPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ví dụ: Bà Nà Hills, Hồ Hoàn Kiếm..."
-                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 bg-white text-gray-900 placeholder:text-gray-400"
               />
             </div>
 
@@ -206,7 +206,7 @@ export default function ContributionPage() {
                   onChange={(e) =>
                     setForm({ ...form, province: e.target.value })
                   }
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 bg-white text-gray-900"
                 >
                   <option value="">Chọn tỉnh/thành phố</option>
                   {cities.map((city) => (
@@ -229,7 +229,7 @@ export default function ContributionPage() {
                       subCategory: "",
                     }); // Reset subCategory
                   }}
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 bg-white text-gray-900"
                 >
                   <option value="">Chọn danh mục</option>
                   {categories.map((cat) => (
@@ -251,7 +251,7 @@ export default function ContributionPage() {
                   setForm({ ...form, subCategory: e.target.value })
                 }
                 disabled={!form.category || subCategories.length === 0}
-                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400 bg-white text-gray-900"
               >
                 <option value="">Chọn danh mục phụ</option>
                 {subCategories.map((cat) => (
@@ -270,7 +270,7 @@ export default function ContributionPage() {
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 placeholder="Ví dụ: Sơn Trà, Đà Nẵng"
-                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100 bg-white text-gray-900 placeholder:text-gray-400"
               />
             </div>
 

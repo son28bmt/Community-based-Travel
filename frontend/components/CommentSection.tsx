@@ -167,7 +167,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Chia sẻ cảm nghĩ của bạn..."
-              className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-300 transition resize-none h-24 text-sm"
+              className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-300 transition resize-none h-24 text-sm text-gray-900 placeholder:text-gray-400"
             />
             <div className="flex justify-end mt-2">
               <button
@@ -270,7 +270,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder={`Trả lời ${comment.user?.name}...`}
-                            className="w-full bg-white border border-gray-200 rounded-lg py-2 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+                            className="w-full bg-white border border-gray-200 rounded-lg py-2 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-900 placeholder:text-gray-400"
                             autoFocus
                           />
                         </div>

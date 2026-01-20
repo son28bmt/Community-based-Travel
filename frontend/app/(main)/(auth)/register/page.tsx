@@ -93,7 +93,7 @@ export default function RegisterPage() {
                   {...register("name")}
                   className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
                     errors.name ? "border-red-300" : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="Họ và tên"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -121,7 +121,7 @@ export default function RegisterPage() {
                   {...register("email")}
                   className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
                     errors.email ? "border-red-300" : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="Địa chỉ Email"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                   {...register("password")}
                   className={`appearance-none rounded-lg relative block w-full px-10 py-3 border ${
                     errors.password ? "border-red-300" : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="Mật khẩu"
                 />
               </div>
@@ -178,7 +178,7 @@ export default function RegisterPage() {
                     errors.confirmPassword
                       ? "border-red-300"
                       : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="Nhập lại mật khẩu"
                 />
               </div>
