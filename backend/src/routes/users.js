@@ -4,6 +4,7 @@ const {
   getUserProfile,
   getUserContributions,
   getUserReviews,
+  getUserPosts,
   getUserSavedLocations,
   toggleFollow,
   updateProfile,
@@ -15,32 +16,55 @@ const { protect } = require("../middlewares/auth");
 
 const router = express.Router();
 
+// --- Logged in user specific routes (Must be before /:id) ---
+
+router.patch("/me", protect, updateProfile);
+
+router.get("/me/saved", protect, getSavedLocations);
+
+router.put(
+  "/me/saved/:id",
+  [param("id").notEmpty().withMessage("Location id is required")],
+  validate,
+  protect,
+  toggleSaveLocation,
+);
+
+// --- Public / Generic Routes ---
+
 router.get(
   "/:id",
   [param("id").notEmpty().withMessage("User id is required")],
   validate,
-  getUserProfile
+  getUserProfile,
+);
+
+router.get(
+  "/:id/posts",
+  [param("id").notEmpty().withMessage("User id is required")],
+  validate,
+  getUserPosts,
 );
 
 router.get(
   "/:id/contributions",
   [param("id").notEmpty().withMessage("User id is required")],
   validate,
-  getUserContributions
+  getUserContributions,
 );
 
 router.get(
   "/:id/reviews",
   [param("id").notEmpty().withMessage("User id is required")],
   validate,
-  getUserReviews
+  getUserReviews,
 );
 
 router.get(
   "/:id/saved",
   [param("id").notEmpty().withMessage("User id is required")],
   validate,
-  getUserSavedLocations
+  getUserSavedLocations,
 );
 
 router.put(
@@ -48,27 +72,7 @@ router.put(
   [param("id").notEmpty().withMessage("User id is required")],
   validate,
   protect,
-  toggleFollow
-);
-
-router.patch(
-  "/me",
-  protect,
-  updateProfile
-);
-
-router.put(
-  "/me/saved/:id",
-  [param("id").notEmpty().withMessage("Location id is required")],
-  validate,
-  protect,
-  toggleSaveLocation
-);
-
-router.get(
-  "/me/saved",
-  protect,
-  getSavedLocations
+  toggleFollow,
 );
 
 module.exports = router;

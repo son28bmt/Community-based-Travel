@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, default: "" },
     coverImage: { type: String, default: "" },
     bio: { type: String, default: "", maxlength: 500 },
+    website: { type: String, default: "" },
+    city: { type: String, default: "" },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     savedLocations: [

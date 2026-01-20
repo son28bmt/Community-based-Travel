@@ -18,7 +18,7 @@ const registerUser = async (req, res, next) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Người dùng đã tồn tại" });
     }
 
     const user = await User.create({
@@ -36,7 +36,7 @@ const registerUser = async (req, res, next) => {
         accessToken: generateToken(user._id),
       });
     } else {
-      res.status(400).json({ message: "Invalid user data" });
+      res.status(400).json({ message: "Dữ liệu người dùng không hợp lệ" });
     }
   } catch (error) {
     next(error);
@@ -58,7 +58,7 @@ const loginUser = async (req, res, next) => {
         accessToken: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
     }
   } catch (error) {
     next(error);
@@ -123,6 +123,8 @@ const getUserProfile = async (req, res, next) => {
         avatar: user.avatar,
         coverImage: user.coverImage,
         bio: user.bio,
+        website: user.website,
+        city: user.city,
         badges: user.badges || [],
         role: user.role,
         isFollowing,
@@ -228,7 +230,7 @@ const getUserSavedLocations = async (req, res, next) => {
     const start = (page - 1) * limit;
     const ids = user.savedLocations.slice(start, start + limit);
     const items = await Location.find({ _id: { $in: ids } }).select(
-      "name category province imageUrl"
+      "name category province imageUrl",
     );
 
     return res.json({
@@ -249,28 +251,30 @@ const toggleFollow = async (req, res, next) => {
   try {
     const target = await resolveUserByParam(req.params.id);
     if (!target) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
 
     const me = await User.findById(req.user.id);
     if (!me) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
 
     if (String(me._id) === String(target._id)) {
-      return res.status(400).json({ message: "Cannot follow نفسك" });
+      return res
+        .status(400)
+        .json({ message: "Không thể tự theo dõi chính mình" });
     }
 
     const alreadyFollowing = target.followers.some(
-      (id) => String(id) === String(me._id)
+      (id) => String(id) === String(me._id),
     );
 
     if (alreadyFollowing) {
       target.followers = target.followers.filter(
-        (id) => String(id) !== String(me._id)
+        (id) => String(id) !== String(me._id),
       );
       me.following = me.following.filter(
-        (id) => String(id) !== String(target._id)
+        (id) => String(id) !== String(target._id),
       );
     } else {
       target.followers.push(me._id);
@@ -290,19 +294,24 @@ const toggleFollow = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, bio, avatar, coverImage, username } = req.body;
+    const { name, bio, avatar, coverImage, username, website, city } = req.body;
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
 
     if (name) user.name = name;
     if (bio) user.bio = bio;
     if (avatar) user.avatar = avatar;
     if (coverImage) user.coverImage = coverImage;
+    if (website !== undefined) user.website = website;
+    if (city !== undefined) user.city = city;
     if (username) {
       // Simple check, real app should check uniqueness if changed
       const existing = await User.findOne({ username });
       if (existing && existing.id !== user.id) {
-        return res.status(400).json({ message: "Username already taken" });
+        return res
+          .status(400)
+          .json({ message: "Tên đăng nhập đã được sử dụng" });
       }
       user.username = username;
     }
@@ -322,7 +331,7 @@ const toggleSaveLocation = async (req, res, next) => {
     const isSaved = user.savedLocations.includes(locationId);
     if (isSaved) {
       user.savedLocations = user.savedLocations.filter(
-        (id) => String(id) !== String(locationId)
+        (id) => String(id) !== String(locationId),
       );
     } else {
       user.savedLocations.push(locationId);
