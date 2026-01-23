@@ -61,7 +61,7 @@ const getPosts = async (req, res, next) => {
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .populate("createdBy", "name avatar"),
+        .populate("createdBy", "name avatar role"),
       Post.countDocuments(filter),
     ]);
 
@@ -83,7 +83,7 @@ const getPostById = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id).populate(
       "createdBy",
-      "name avatar",
+      "name avatar role",
     );
     if (!post) {
       return res.status(404).json({ message: "Post not found" });

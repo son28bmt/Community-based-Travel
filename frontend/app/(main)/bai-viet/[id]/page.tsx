@@ -98,7 +98,7 @@ export default function PostDetailPage() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -128,7 +128,7 @@ export default function PostDetailPage() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -268,9 +268,16 @@ export default function PostDetailPage() {
                         >
                           {post.createdBy?.name || "Người dùng ẩn danh"}
                         </Link>
-                        <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border border-green-100">
-                          Thành viên
-                        </span>
+
+                        {post.createdBy?.role === "admin" ? (
+                          <span className="bg-red-50 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border border-red-100 flex items-center gap-1">
+                            <FaCheckCircle size={10} /> Quản trị viên
+                          </span>
+                        ) : (
+                          <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border border-green-100">
+                            Thành viên
+                          </span>
+                        )}
                       </div>
                       <time
                         className="text-xs text-gray-500 mt-0.5 block"

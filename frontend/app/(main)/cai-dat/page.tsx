@@ -21,9 +21,9 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-slate-50 py-4 md:py-8 pb-20 md:pb-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {/* Sidebar */}
           <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 

@@ -136,12 +136,17 @@ export default function ProfileSettings() {
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-white">
-        <h1 className="text-2xl font-bold text-gray-900">Hồ sơ</h1>
-        <p className="text-gray-500">Quản lý thông tin công khai của bạn</p>
+      <div className="p-5 md:p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-white">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Hồ sơ</h1>
+        <p className="text-sm md:text-base text-gray-500">
+          Quản lý thông tin công khai của bạn
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-10">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="p-5 md:p-8 space-y-8 md:space-y-10"
+      >
         {/* Images Section - Separated */}
         <section className="space-y-8">
           <div>
@@ -152,9 +157,9 @@ export default function ProfileSettings() {
               Hình ảnh hiển thị đại diện cho bạn trên nền tảng.
             </p>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <div className="relative shrink-0">
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-gray-50 shadow-sm bg-gray-100 overflow-hidden">
+                <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-50 shadow-sm bg-gray-100 overflow-hidden">
                   {avatarUrl ? (
                     <Image
                       src={avatarUrl}
@@ -179,25 +184,25 @@ export default function ProfileSettings() {
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <div className="flex gap-3">
+              <div className="flex flex-col gap-3 items-center sm:items-start w-full">
+                <div className="flex gap-3 w-full sm:w-auto">
                   <button
                     type="button"
                     disabled={uploadingAvatar}
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+                    className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-center"
                   >
                     {uploadingAvatar ? "Đang tải..." : "Tải ảnh mới"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setValue("avatar", "")}
-                    className="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-200 transition"
+                    className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-200 transition text-center"
                   >
                     Gỡ bỏ
                   </button>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 text-center sm:text-left">
                   Định dạng JPG, PNG. Tối đa 2MB.
                 </p>
               </div>
@@ -223,7 +228,7 @@ export default function ProfileSettings() {
               Hình ảnh lớn hiển thị ở đầu trang cá nhân của bạn.
             </p>
 
-            <div className="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300 group hover:border-gray-400 transition-colors">
+            <div className="relative w-full h-40 sm:h-52 md:h-64 rounded-2xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300 group hover:border-gray-400 transition-colors">
               {coverUrl ? (
                 <Image
                   src={coverUrl}
@@ -238,8 +243,8 @@ export default function ProfileSettings() {
                 </div>
               )}
 
-              {/* Overlay actions */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+              {/* Overlay actions - Desktop */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <button
                   type="button"
                   disabled={uploadingCover}
@@ -251,8 +256,8 @@ export default function ProfileSettings() {
                 </button>
               </div>
 
-              {/* Always visible button for mobile/accessibility */}
-              <div className="absolute top-4 right-4 md:hidden">
+              {/* Always visible button for mobile */}
+              <div className="absolute top-2 right-2 md:hidden">
                 <button
                   type="button"
                   onClick={() => coverInputRef.current?.click()}
@@ -285,14 +290,14 @@ export default function ProfileSettings() {
             Thông tin cơ bản
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Họ và tên
               </label>
               <input
                 {...register("name", { required: "Họ tên là bắt buộc" })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="Nguyễn Văn A"
               />
             </div>
@@ -312,7 +317,7 @@ export default function ProfileSettings() {
                     },
                     minLength: { value: 3, message: "Tối thiểu 3 ký tự" },
                   })}
-                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
                   placeholder="ten_dang_nhap"
                 />
               </div>
@@ -334,7 +339,7 @@ export default function ProfileSettings() {
               <textarea
                 {...register("bio")}
                 rows={4}
-                className="w-full px-4 pt-8 pb-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-white text-gray-900 placeholder:text-gray-400 resize-none"
+                className="w-full px-4 pt-8 pb-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white text-gray-900 placeholder:text-gray-400 resize-none"
                 placeholder="Mô tả ngắn về bạn..."
               />
               <FaSmile className="absolute bottom-3 right-3 text-gray-400" />
@@ -353,7 +358,7 @@ export default function ProfileSettings() {
             Liên kết & Vị trí
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Trang web
@@ -362,7 +367,7 @@ export default function ProfileSettings() {
                 <FaGlobe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   {...register("website")}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
                   placeholder="https://your-website.com"
                 />
               </div>
@@ -375,7 +380,7 @@ export default function ProfileSettings() {
                 <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   {...register("city")}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white text-gray-900 placeholder:text-gray-400"
                   placeholder="TP. Hồ Chí Minh"
                 />
               </div>
@@ -384,18 +389,18 @@ export default function ProfileSettings() {
         </section>
 
         {/* Footer Actions */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="px-6 py-2.5 rounded-full font-bold text-gray-500 hover:bg-gray-100 transition"
+            className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-full font-bold text-gray-500 hover:bg-gray-100 transition"
           >
             Hủy bỏ
           </button>
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="px-8 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-bold shadow-lg shadow-cyan-200 hover:shadow-cyan-300 transition hover:-translate-y-0.5"
+            className="w-full sm:w-auto px-8 py-3 sm:py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-bold shadow-lg shadow-cyan-200 hover:shadow-cyan-300 transition hover:-translate-y-0.5"
           >
             {updateMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
           </button>

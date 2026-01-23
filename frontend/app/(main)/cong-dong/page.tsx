@@ -38,7 +38,14 @@ const formatDateTime = (value?: string) => {
 
 const stripHtml = (html: string) => {
   if (!html) return "";
-  return html.replace(/<[^>]*>?/gm, "").trim();
+  // Remove tags
+  let text = html.replace(/<[^>]*>?/gm, "");
+  // Decode basic entities
+  text = text.replace(/&nbsp;/g, " ");
+  text = text.replace(/&amp;/g, "&");
+  text = text.replace(/&lt;/g, "<");
+  text = text.replace(/&gt;/g, ">");
+  return text.trim();
 };
 
 export default function CommunityPage() {
@@ -52,9 +59,13 @@ export default function CommunityPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["community-posts", page, category],
     queryFn: async () => {
-      const res = await axios.get((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") + "/api/posts", {
-        params: { page, limit: 6, category: category || undefined },
-      });
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/posts",
+        {
+          params: { page, limit: 6, category: category || undefined },
+        },
+      );
       return res.data;
     },
   });
@@ -70,7 +81,7 @@ export default function CommunityPage() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       return res.data;
     },
@@ -257,10 +268,14 @@ export default function CommunityPage() {
                     <h3 className="text-lg font-bold text-gray-900 mb-2">
                       {post.title}
                     </h3>
-                    <p className="text-gray-700 mb-4 whitespace-pre-line">
-                      {stripHtml(post.content).slice(0, 400)}
-                      {stripHtml(post.content).length > 400 ? "..." : ""}
+                    <p className="text-gray-700 mb-4 line-clamp-3">
+                      {stripHtml(post.content)}
                     </p>
+                    {stripHtml(post.content).length > 200 && (
+                      <span className="text-blue-500 text-sm font-medium mb-4 block hover:underline">
+                        Xem chi tiết
+                      </span>
+                    )}
 
                     {post.imageUrl && (
                       <div className="relative w-full h-64 rounded-lg overflow-hidden mb-4">

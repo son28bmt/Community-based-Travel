@@ -27,8 +27,9 @@ export default function SettingsSidebar({
   ];
 
   return (
-    <div className="w-full md:w-64 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden h-fit">
-      <div className="p-6 border-b border-gray-50">
+    <div className="w-full md:w-64 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden h-fit flex-shrink-0">
+      {/* Desktop Header */}
+      <div className="hidden md:block p-6 border-b border-gray-50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
             <FaCog />
@@ -39,23 +40,27 @@ export default function SettingsSidebar({
           </div>
         </div>
       </div>
-      <div className="p-4">
-        <ul className="space-y-1">
+
+      <div className="p-2 md:p-4">
+        {/* Mobile: Horizontal Scroll, Desktop: Vertical Stack */}
+        <ul className="flex md:flex-col gap-2 md:gap-0 md:space-y-1 overflow-x-auto no-scrollbar pb-2 md:pb-0">
           {menuItems.map((item) => (
-            <li key={item.id}>
+            <li key={item.id} className="shrink-0">
               <button
                 onClick={() => setActiveTab(item.id)}
                 className={clsx(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm",
+                  "flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-xl transition-all font-bold text-sm whitespace-nowrap",
                   activeTab === item.id
-                    ? "bg-blue-50 text-blue-600 shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50",
+                    ? "bg-blue-600 text-white md:bg-blue-50 md:text-blue-600 shadow-md md:shadow-sm"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 md:bg-transparent",
                 )}
               >
                 <item.icon
                   className={clsx(
                     "text-lg",
-                    activeTab === item.id ? "text-blue-600" : "text-gray-400",
+                    activeTab === item.id
+                      ? "text-white md:text-blue-600"
+                      : "text-gray-400",
                   )}
                 />
                 {item.label}
@@ -64,15 +69,16 @@ export default function SettingsSidebar({
           ))}
         </ul>
 
-        <hr className="my-4 border-gray-100" />
-
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-medium text-sm"
-        >
-          <FaSignOutAlt className="text-lg" />
-          Đăng xuất
-        </button>
+        <div className="hidden md:block">
+          <hr className="my-4 border-gray-100" />
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-medium text-sm"
+          >
+            <FaSignOutAlt className="text-lg" />
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </div>
   );
