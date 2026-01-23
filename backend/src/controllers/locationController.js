@@ -1,6 +1,51 @@
 const Location = require("../models/Location");
 const Category = require("../models/Category");
 const City = require("../models/City");
+const AiService = require("../services/ai.service");
+
+// Helper to remove tones
+function removeVietnameseTones(str) {
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  str = str.replace(/đ/g, "d");
+  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Đ/g, "D");
+  str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+  return str;
+}
+
+// Helper to map categories to parent names
+const mapToParentCategory = async (locs) => {
+  if (!Array.isArray(locs)) return locs;
+
+  return Promise.all(
+    locs.map(async (loc) => {
+      try {
+        const locObj = loc.toObject ? loc.toObject() : { ...loc };
+        // Find the category doc for this location
+        const catDoc = await Category.findOne({
+          name: locObj.category,
+        }).populate("parent");
+        if (catDoc && catDoc.parent) {
+          locObj.category = catDoc.parent.name;
+        }
+        return locObj;
+      } catch (err) {
+        console.error("Error in mapToParentCategory:", err);
+        return loc.toObject ? loc.toObject() : { ...loc };
+      }
+    }),
+  );
+};
 
 // @desc    Get all public locations (approved) with pagination, search, filter
 // @route   GET /api/locations
@@ -18,49 +63,7 @@ const getLocations = async (req, res, next) => {
     const ratingMax = parseFloat(req.query.ratingMax);
     const includeRatings = req.query.includeRatings === "1";
 
-    // Helper to remove tones
-    function removeVietnameseTones(str) {
-      str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
-      str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
-      str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-      str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
-      str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
-      str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
-      str = str.replace(/đ/g, "d");
-      str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
-      str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
-      str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
-      str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
-      str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
-      str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
-      str = str.replace(/Đ/g, "D");
-      str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
-      return str;
-    }
-
-    // Helper to map categories to parent names
-    const mapToParentCategory = async (locs) => {
-      if (!Array.isArray(locs)) return locs;
-
-      return Promise.all(
-        locs.map(async (loc) => {
-          try {
-            const locObj = loc.toObject ? loc.toObject() : { ...loc };
-            // Find the category doc for this location
-            const catDoc = await Category.findOne({
-              name: locObj.category,
-            }).populate("parent");
-            if (catDoc && catDoc.parent) {
-              locObj.category = catDoc.parent.name;
-            }
-            return locObj;
-          } catch (err) {
-            console.error("Error in mapToParentCategory:", err);
-            return loc.toObject ? loc.toObject() : { ...loc };
-          }
-        }),
-      );
-    };
+    // Helpers are now at module scope
 
     // Smart Search Parsing
     if (search) {
@@ -135,22 +138,91 @@ const getLocations = async (req, res, next) => {
 
     const query = { status: "approved" };
 
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
+    // Only apply search text if we don't have specific filters OR if search has meaningful content
+    // Meaningful = more than just connector words like "muon di", "o", "tai", etc.
+    if (search && !category && !province) {
+      // No filters - use search text as-is
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+      ];
+    } else if (search && (category || province)) {
+      // Has filters - only use search if it's meaningful (not just "muon di", "nhau", etc.)
+      let cleanedSearch = search
+        .replace(/\b(muon|di|o|tai|trong|khu vuc|den)\b/gi, "")
+        .trim();
+
+      // Also remove category-related keywords (normalize Vietnamese text first)
+      const searchNormalized =
+        removeVietnameseTones(cleanedSearch).toLowerCase();
+      const categoryKeywords = [
+        "quan nhau",
+        "nhau",
+        "quan an",
+        "am thuc",
+        "nha hang",
+        "cafe",
+        "hai san",
+        "khach san",
+        "luu tru",
+      ];
+
+      for (const keyword of categoryKeywords) {
+        if (searchNormalized.includes(keyword)) {
+          // Remove from the normalized version
+          cleanedSearch = removeVietnameseTones(cleanedSearch)
+            .replace(new RegExp(`\\b${keyword}\\b`, "gi"), "")
+            .trim();
+        }
+      }
+
+      console.log("🔍 Search text cleanup:");
+      console.log("- Original:", search);
+      console.log("- Cleaned:", cleanedSearch);
+
+      if (cleanedSearch && cleanedSearch.length > 2) {
+        // Has meaningful keywords after cleanup
+        query.$or = [
+          { name: { $regex: cleanedSearch, $options: "i" } },
+          { description: { $regex: cleanedSearch, $options: "i" } },
+          { address: { $regex: cleanedSearch, $options: "i" } },
+        ];
+      } else {
+        console.log(
+          "⚠️ Search was just category/location keywords - using FILTERS ONLY",
+        );
+      }
+      // Otherwise skip search text entirely, rely on filters
     }
 
     if (category) {
       const categoryDoc = await Category.findOne({
         name: { $regex: new RegExp(`^${category}$`, "i") },
       });
+
+      console.log("🔍 Category Search Debug:");
+      console.log("- Input category:", category);
+      console.log(
+        "- Found categoryDoc:",
+        categoryDoc ? categoryDoc.name : "NOT FOUND",
+      );
+
       if (categoryDoc) {
         const subCategories = await Category.find({
           parent: categoryDoc._id,
         }).select("name");
+
         const categoryNames = [
           categoryDoc.name,
           ...subCategories.map((c) => c.name),
         ];
+
+        console.log(
+          "- Subcategories:",
+          subCategories.map((c) => c.name),
+        );
+        console.log("- Final category list to search:", categoryNames);
 
         query.category = { $in: categoryNames };
       } else {
@@ -297,7 +369,96 @@ const getLocation = async (req, res, next) => {
   }
 };
 
+// @desc    AI Search for locations
+// @route   GET /api/locations/ai-search
+// @access  Public
+const aiSearch = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: "Search query 'q' is required" });
+    }
+
+    // Call AI Service
+    const analysis = await AiService.analyzeQuery(q);
+    console.log("AI Search Analysis:", analysis);
+
+    // If AI fails or returns null (e.g. no API key), fallback to existing search logic
+    if (!analysis) {
+      // Just perform basic text search
+      const basicQuery = {
+        status: "approved",
+        $or: [
+          { name: { $regex: q, $options: "i" } },
+          { description: { $regex: q, $options: "i" } },
+        ],
+      };
+      let fallbackItems = await Location.find(basicQuery).limit(10);
+      fallbackItems = await mapToParentCategory(fallbackItems);
+      return res.status(200).json({
+        analysis: null,
+        items: fallbackItems,
+        message:
+          "AI analysis unavailable (check API key), showing basic text match results.",
+      });
+    }
+
+    // Construct Query from Analysis
+    const query = { status: "approved" };
+
+    // 1. Province
+    if (analysis.province) {
+      query.province = { $regex: analysis.province, $options: "i" };
+    }
+
+    // 2. Category
+    if (analysis.category) {
+      const categoryDoc = await Category.findOne({
+        name: { $regex: new RegExp(`^${analysis.category}$`, "i") },
+      });
+      if (categoryDoc) {
+        const subCategories = await Category.find({
+          parent: categoryDoc._id,
+        }).select("name");
+        const categoryNames = [
+          categoryDoc.name,
+          ...subCategories.map((c) => c.name),
+        ];
+        query.category = { $in: categoryNames };
+      } else {
+        query.category = { $regex: analysis.category, $options: "i" };
+      }
+    }
+
+    // 3. Keywords
+    if (analysis.keywords) {
+      query.$or = [
+        { name: { $regex: analysis.keywords, $options: "i" } },
+        { description: { $regex: analysis.keywords, $options: "i" } },
+        { address: { $regex: analysis.keywords, $options: "i" } },
+      ];
+    }
+
+    // Execute Query
+    let locations = await Location.find(query)
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select("-status -user");
+
+    // Map categories
+    locations = await mapToParentCategory(locations);
+
+    return res.status(200).json({
+      analysis,
+      items: locations,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getLocations,
   getLocation,
+  aiSearch,
 };

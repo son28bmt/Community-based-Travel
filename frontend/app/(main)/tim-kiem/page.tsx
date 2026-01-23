@@ -9,6 +9,7 @@ import {
   FaMapMarkerAlt,
   FaFilter,
   FaChevronDown,
+  FaRobot,
 } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -41,6 +42,7 @@ function SearchContent() {
   const [sort, setSort] = useState(initialSort);
   const [page, setPage] = useState(initialPage);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [aiMode, setAiMode] = useState(false);
 
   // Sync state with URL
   useEffect(() => {
@@ -84,8 +86,13 @@ function SearchContent() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch Locations (Realtime)
-  const { data, isLoading, isError, isFetching } = useQuery({
+  // Fetch Locations (Normal)
+  const {
+    data: normalData,
+    isLoading: isNormalLoading,
+    isError: isNormalError,
+    isFetching: isNormalFetching,
+  } = useQuery({
     queryKey: [
       "search-locations",
       debouncedSearch,
@@ -119,13 +126,60 @@ function SearchContent() {
       );
       return res.data;
     },
-    placeholderData: (previousData) => previousData, // keepPreviousData logic
+    placeholderData: (previousData) => previousData,
+    enabled: !aiMode,
   });
 
-  const locations = data?.items || [];
-  const pagination = data?.pagination;
+  // Fetch Locations (AI)
+  const {
+    data: aiData,
+    isLoading: isAiLoading,
+    isError: isAiError,
+    isFetching: isAiFetching,
+  } = useQuery({
+    queryKey: ["search-ai", debouncedSearch],
+    queryFn: async () => {
+      const res = await axios.get(
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000") +
+          "/api/locations/ai-search",
+        {
+          params: { q: debouncedSearch },
+        },
+      );
+      return res.data;
+    },
+    enabled: aiMode && !!debouncedSearch,
+  });
 
-  // Helper to remove tones (Client side version)
+  const locations = aiMode ? aiData?.items || [] : normalData?.items || [];
+  const pagination = aiMode ? null : normalData?.pagination;
+  const isLoading = aiMode ? isAiLoading : isNormalLoading;
+  const isError = aiMode ? isAiError : isNormalError;
+  const isFetching = aiMode ? isAiFetching : isNormalFetching;
+  const aiAnalysis = aiData?.analysis;
+
+  // Sync AI Analysis with UI Filters
+  useEffect(() => {
+    if (aiMode && aiAnalysis) {
+      if (aiAnalysis.category) {
+        // Check if category exists in validation list (categoriesData)
+        const exists = categoriesData?.items?.some(
+          (c: any) =>
+            c.name.toLowerCase() === aiAnalysis.category.toLowerCase(),
+        );
+        if (exists) setCategory(aiAnalysis.category);
+      }
+      if (aiAnalysis.province) {
+        const exists = citiesData?.items?.some(
+          (c: any) =>
+            c.name.toLowerCase() === aiAnalysis.province.toLowerCase(),
+        );
+        if (exists) setProvince(aiAnalysis.province);
+      }
+    }
+  }, [aiMode, aiAnalysis, categoriesData, citiesData]);
+
+  // Helper to remove tones (Client side version) - MOVED UP for useEffect
   const removeVietnameseTones = (str: string) => {
     str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
     str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
@@ -145,71 +199,182 @@ function SearchContent() {
     return str;
   };
 
+  // Auto-parse search on mount (for searches from Home page)
+  useEffect(() => {
+    if (
+      !aiMode &&
+      debouncedSearch &&
+      citiesData?.items &&
+      categoriesData?.items
+      // Removed !category && !province - allow re-parsing even if filters exist
+    ) {
+      // Simulate handleSubmit logic
+      const searchNormalized =
+        removeVietnameseTones(debouncedSearch).toLowerCase();
+
+      const synonymMap: Record<string, string> = {
+        "an uong": "Ẩm thực",
+        "quan an": "Ẩm thực",
+        "nha hang": "Ẩm thực",
+        "quan nhau": "Ẩm thực",
+        nhau: "Ẩm thực",
+        uong: "Ẩm thực",
+        cafe: "Ẩm thực",
+        "ca phe": "Ẩm thực",
+        "luu tru": "Khách sạn",
+        "khach san": "Khách sạn",
+        resort: "Khách sạn",
+        "nghi duong": "Khách sạn",
+        homestay: "Khách sạn",
+        "tham quan": "Ki Quan",
+        checkin: "Checkin",
+        "check in": "Checkin",
+        "du lich": "Ki Quan",
+      };
+
+      let detectedProvince = "";
+      let detectedCategory = "";
+
+      // Detect Province
+      for (const city of citiesData.items) {
+        const cityNormalized = removeVietnameseTones(city.name).toLowerCase();
+        if (new RegExp(`\\b${cityNormalized}\\b`, "i").test(searchNormalized)) {
+          detectedProvince = city.name;
+          break;
+        }
+      }
+
+      // Detect Category
+      for (const cat of categoriesData.items) {
+        const catNormalized = removeVietnameseTones(cat.name).toLowerCase();
+        if (new RegExp(`\\b${catNormalized}\\b`, "i").test(searchNormalized)) {
+          detectedCategory = cat.name;
+          break;
+        }
+      }
+
+      // Synonym match
+      if (!detectedCategory) {
+        for (const [key, val] of Object.entries(synonymMap)) {
+          if (new RegExp(`\\b${key}\\b`, "i").test(searchNormalized)) {
+            const realCat = categoriesData.items.find(
+              (c: any) =>
+                removeVietnameseTones(c.name).toLowerCase() ===
+                removeVietnameseTones(val).toLowerCase(),
+            );
+            if (realCat) {
+              detectedCategory = realCat.name;
+              break;
+            }
+          }
+        }
+      }
+
+      if (detectedProvince || detectedCategory) {
+        console.log("Auto-parsed on mount:", {
+          detectedCategory,
+          detectedProvince,
+        });
+        if (detectedProvince) setProvince(detectedProvince);
+        if (detectedCategory) setCategory(detectedCategory);
+      }
+    }
+  }, [debouncedSearch, citiesData, categoriesData, aiMode, category, province]);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    // Smart Parsing Logic
-    if (citiesData?.items && categoriesData?.items) {
-      let newSearch = searchInput;
+    // Smart Parsing Logic (Only used in Normal Mode)
+    if (!aiMode && citiesData?.items && categoriesData?.items) {
+      const newSearch = searchInput;
       let newProvince = province;
       let newCategory = category;
       const searchNormalized = removeVietnameseTones(newSearch).toLowerCase();
+
+      // Synonym Maps
+      const synonymMap: Record<string, string> = {
+        "an uong": "Ẩm thực",
+        "quan an": "Ẩm thực",
+        "nha hang": "Ẩm thực",
+        "quan nhau": "Ẩm thực",
+        nhau: "Ẩm thực",
+        uong: "Ẩm thực",
+        cafe: "Ẩm thực",
+        "ca phe": "Ẩm thực",
+        "luu tru": "Khách sạn",
+        "khach san": "Khách sạn",
+        resort: "Khách sạn",
+        "nghi duong": "Khách sạn",
+        homestay: "Khách sạn",
+        "tham quan": "Ki Quan", // Assuming 'Ki Quan' is the category name for sightseeing based on user screenshots
+        checkin: "Checkin",
+        "check in": "Checkin",
+        "du lich": "Ki Quan",
+      };
 
       // 1. Detect Province if not set
       if (!newProvince) {
         for (const city of citiesData.items) {
           const cityNormalized = removeVietnameseTones(city.name).toLowerCase();
-          // Match "tai da nang", "o da nang", or just "da nang" if word boundary
           if (
             new RegExp(`\\b${cityNormalized}\\b`, "i").test(searchNormalized)
           ) {
             newProvince = city.name;
-            const regex = new RegExp(
-              `\\b${removeVietnameseTones(city.name)}\\b`,
-              "gi",
-            );
-            newSearch = removeVietnameseTones(newSearch)
-              .replace(regex, "")
-              .trim();
+            // DON'T strip from search - keep original query
             break;
           }
         }
       }
 
-      // 2. Detect Category if not set
+      // 2. Detect Category (Direct Match + Synonyms) if not set
       if (!newCategory) {
+        // Direct Match
         for (const cat of categoriesData.items) {
           const catNormalized = removeVietnameseTones(cat.name).toLowerCase();
           if (
             new RegExp(`\\b${catNormalized}\\b`, "i").test(searchNormalized)
           ) {
             newCategory = cat.name;
-            const regex = new RegExp(
-              `\\b${removeVietnameseTones(cat.name)}\\b`,
-              "gi",
-            );
-            newSearch = removeVietnameseTones(newSearch)
-              .replace(regex, "")
-              .trim();
+            // DON'T strip from search - keep original query
             break;
+          }
+        }
+
+        // Synonym Match (if still not found)
+        if (!newCategory) {
+          console.log("Checking synonyms for:", searchNormalized);
+          for (const [key, val] of Object.entries(synonymMap)) {
+            if (new RegExp(`\\b${key}\\b`, "i").test(searchNormalized)) {
+              console.log("Match found:", key, "->", val);
+              // Verify the mapped category actually exists in our data
+              const realCat = categoriesData.items.find(
+                (c: any) =>
+                  removeVietnameseTones(c.name).toLowerCase() ===
+                  removeVietnameseTones(val).toLowerCase(),
+              );
+
+              if (realCat) {
+                newCategory = realCat.name;
+                // DON'T strip from search - keep original query
+              } else {
+                console.log("Category not found in DB:", val);
+              }
+              break;
+            }
           }
         }
       }
 
-      // 3. Cleanup
-      newSearch = newSearch
-        .replace(/\b(tại|ở|trong|khu vực|tai|o|khu vuc)\b/gi, "")
-        .trim();
-      newSearch = newSearch.replace(/\s+/g, " ").trim();
+      console.log("Auto-Filter Result:", {
+        newCategory,
+        newProvince,
+        originalSearch: searchInput,
+      });
 
-      if (
-        newProvince !== province ||
-        newCategory !== category ||
-        newSearch !== searchInput
-      ) {
+      // Only update filters, NOT the search text
+      if (newProvince !== province || newCategory !== category) {
         setProvince(newProvince);
         setCategory(newCategory);
-        setSearchInput(newSearch);
         setPage(1);
       }
     }
@@ -273,10 +438,27 @@ function SearchContent() {
               className="flex-1 outline-none text-sm py-2 text-gray-900 placeholder-gray-400"
             />
             <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-700 transition-colors"
+              type="button"
+              onClick={() => setAiMode(!aiMode)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                aiMode
+                  ? "bg-purple-100 text-purple-700 border-purple-200 shadow-inner"
+                  : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+              }`}
+              title="Bật tìm kiếm thông minh với AI"
             >
-              Tìm
+              <FaRobot className={aiMode ? "animate-pulse" : ""} />
+              <span className="hidden sm:inline">AI Search</span>
+            </button>
+            <button
+              type="submit"
+              className={`text-white px-4 md:px-6 py-2 rounded-full text-sm font-bold transition-colors ${
+                aiMode
+                  ? "bg-purple-600 hover:bg-purple-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {aiMode ? "Hỏi AI" : "Tìm"}
             </button>
           </div>
         </form>
@@ -476,6 +658,47 @@ function SearchContent() {
                       </div>
                     </Link>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI Analysis Result */}
+            {aiMode && aiAnalysis && (
+              <div className="mb-6 bg-purple-50 border border-purple-100 rounded-2xl p-4 md:p-6 shadow-sm">
+                <h2 className="text-purple-800 font-bold mb-2 flex items-center gap-2">
+                  <FaRobot /> Kết quả phân tích AI
+                </h2>
+                <div className="text-sm text-purple-900 space-y-1">
+                  {aiAnalysis.intent && (
+                    <p>
+                      <span className="font-semibold">Ý định:</span>{" "}
+                      {aiAnalysis.intent}
+                    </p>
+                  )}
+                  {aiAnalysis.province && (
+                    <p>
+                      <span className="font-semibold">Địa điểm:</span>{" "}
+                      {aiAnalysis.province}
+                    </p>
+                  )}
+                  {aiAnalysis.category && (
+                    <p>
+                      <span className="font-semibold">Danh mục:</span>{" "}
+                      {aiAnalysis.category}
+                    </p>
+                  )}
+                  {aiAnalysis.keywords && (
+                    <p>
+                      <span className="font-semibold">Từ khóa:</span>{" "}
+                      {aiAnalysis.keywords}
+                    </p>
+                  )}
+                  {aiAnalysis.features && aiAnalysis.features.length > 0 && (
+                    <p>
+                      <span className="font-semibold">Đặc điểm:</span>{" "}
+                      {aiAnalysis.features.join(", ")}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
